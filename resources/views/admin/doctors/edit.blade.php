@@ -7,7 +7,6 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
 
-    {{-- Başlyk we Yzyna gaýtmak --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <i class="ti ti-user-edit text-blue-600 dark:text-blue-400"></i>
@@ -19,7 +18,6 @@
         </a>
     </div>
 
-    {{-- Ýalňyşlyk Habarlary (Errors) --}}
     @if ($errors->any())
     <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 p-4 rounded-2xl space-y-2">
         <div class="flex items-center gap-2 font-semibold text-sm">
@@ -34,12 +32,10 @@
     </div>
     @endif
 
-    {{-- Form Karta --}}
     <form action="{{ route('admin.doctors.update', $doctor->id) }}" method="POST" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6 transition-colors">
         @csrf
         @method('PUT')
 
-        {{-- Ady --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">FIO (Ady we Familiýasy)</label>
             <div class="relative">
@@ -51,7 +47,6 @@
             </div>
         </div>
 
-        {{-- Email we Telefon --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Email Salgysy</label>
@@ -75,7 +70,6 @@
             </div>
         </div>
 
-        {{-- Parol --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Täze Parol (Eger üýtgetmezek bolsaňyz boş goýuň)</label>
             <div class="relative">
@@ -87,7 +81,6 @@
             </div>
         </div>
 
-        {{-- Hünär ugry we Tejribe ýyly --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Hünär Ugry</label>
@@ -117,7 +110,6 @@
             </div>
         </div>
 
-        {{-- Baha we Valýuta --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Maslahat bahasy (Fee)</label>
@@ -141,7 +133,6 @@
             </div>
         </div>
 
-        {{-- Klinika saýlamak --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Işleýän Klinikalary</label>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 border border-gray-200 dark:border-gray-700 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
@@ -162,7 +153,6 @@
             </div>
         </div>
 
-        {{-- Bilimi we Biografiýa --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Bilimi (Education)</label>
@@ -176,7 +166,6 @@
             </div>
         </div>
 
-        {{-- Tassyklanan ýagdaýy we Is Active --}}
         <div class="flex flex-col sm:flex-row sm:items-center gap-6 pt-2">
             <label class="flex items-center space-x-3 cursor-pointer">
                 <input type="checkbox" name="is_verified" value="1" {{ old('is_verified', $doctor->is_verified) ? 'checked' : '' }}
@@ -196,7 +185,6 @@
             </label>
         </div>
 
-        {{-- Submit Düwmesi --}}
         <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/25 transition duration-200 flex items-center justify-center gap-2">
                 <i class="ti ti-device-floppy text-xl"></i>

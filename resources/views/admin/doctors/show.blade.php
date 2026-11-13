@@ -7,7 +7,6 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
 
-    {{-- Ýokarky Başlyk we Düwmeler --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <i class="ti ti-user-shield text-blue-600 dark:text-blue-400"></i>
@@ -25,10 +24,8 @@
         </div>
     </div>
 
-    {{-- Esasy Karta --}}
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6 transition-colors">
 
-        {{-- Esasy Maglumatlar Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b border-gray-200 dark:border-gray-700 pb-6">
             <div class="flex items-start gap-3">
                 <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -71,7 +68,6 @@
             </div>
         </div>
 
-        {{-- Professional Maglumatlar --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-gray-200 dark:border-gray-700 pb-6">
             <div class="flex items-start gap-3">
                 <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
@@ -107,7 +103,6 @@
             </div>
         </div>
 
-        {{-- Klinikalary --}}
         <div class="border-b border-gray-200 dark:border-gray-700 pb-6">
             <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-3">Işleýän Klinikalary</span>
             <div class="flex flex-wrap gap-2">
@@ -122,7 +117,6 @@
             </div>
         </div>
 
-        {{-- Bilimi we Biografiýa --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <span class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 block mb-2">Bilimi (Education)</span>

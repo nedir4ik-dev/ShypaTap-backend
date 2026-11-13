@@ -3,7 +3,6 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-colors duration-200">
 
-    {{-- Başlyk we Yzyna gaýtmak --}}
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Täze Lukman Goşmak</h1>
@@ -14,7 +13,6 @@
         </a>
     </div>
 
-    {{-- Ýalňyşlyklar --}}
     @if ($errors->any())
     <div class="mb-6 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm">
         <strong class="font-bold">Ýalňyşlyk bar!</strong>
@@ -26,17 +24,14 @@
     </div>
     @endif
 
-    {{-- Forma --}}
     <form action="{{ route('admin.doctors.store') }}" method="POST" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-2xl p-6 sm:p-8 space-y-6 transition-colors">
         @csrf
 
-        {{-- Ady we Familiýasy --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">FIO (Ady we Familiýasy)</label>
             <input type="text" name="name" value="{{ old('name') }}" required placeholder="Meselem: Dr. Aman Amanow" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
-        {{-- Email we Telefon --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Salgysy</label>
@@ -48,13 +43,11 @@
             </div>
         </div>
 
-        {{-- Parol --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Parol</label>
             <input type="password" name="password" required placeholder="Iň az 8 simwol" class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
-        {{-- Hünär ugry we Tejribe ýyly --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hünär Ugry</label>
@@ -73,7 +66,6 @@
             </div>
         </div>
 
-        {{-- Baha we Valýuta --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Maslahat bahasy (Fee)</label>
@@ -85,7 +77,6 @@
             </div>
         </div>
 
-        {{-- Klinika saýlamak (Checkboxes) --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Işleýän Klinikalary</label>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 border border-gray-200 dark:border-gray-700 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50">
@@ -100,7 +91,6 @@
             </div>
         </div>
 
-        {{-- Bilimi we Biografiýa --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Bilimi (Education)</label>
             <textarea name="education" rows="2" placeholder="Hajy Ýolölenow adyndaky lukmançylyk uniwersiteti..." class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('education') }}</textarea>
@@ -111,7 +101,6 @@
             <textarea name="biography" rows="3" placeholder="Lukman hakynda gysgaça maglumat..." class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2.5 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('biography') }}</textarea>
         </div>
 
-        {{-- Tassyklanan / Active Switchler --}}
         <div class="flex items-center space-x-6 pt-2">
             <label class="flex items-center space-x-3 cursor-pointer">
                 <input type="checkbox" name="is_verified" value="1" {{ old('is_verified') ? 'checked' : '' }} class="rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500 dark:bg-gray-900 w-4 h-4">
@@ -123,7 +112,6 @@
             </label>
         </div>
 
-        {{-- Submit Düwmesi --}}
         <div class="pt-4">
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-blue-600/30 transition">
                 Lukmany Ýatda Saklaň

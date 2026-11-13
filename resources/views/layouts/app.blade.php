@@ -11,15 +11,12 @@
 
 <body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200 overflow-x-hidden">
 
-    <!-- Mobil üçin fon örtügi (Backdrop) -->
     <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm hidden md:hidden"></div>
 
     <div class="flex h-screen overflow-hidden">
 
-        {{-- Sidebar --}}
         @include('layouts.partials.sidebar')
 
-        {{-- Esasy Content Penjiresi --}}
         <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
             @include('layouts.partials.navbar')
@@ -28,13 +25,11 @@
                 @yield('content')
             </main>
 
-            {{-- Footer --}}
             @include('layouts.partials.footer')
 
         </div>
     </div>
 
-    {{-- Dark Mode & Mobile Sidebar Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const storedTheme = localStorage.getItem('theme') || 'light';

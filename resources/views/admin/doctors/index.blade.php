@@ -3,7 +3,6 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-colors duration-200">
 
-    {{-- Başlyk we Düwme --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Lukmanlar Sanawy</h1>
@@ -14,7 +13,6 @@
         </a>
     </div>
 
-    {{-- Gözleg Formasy --}}
     <form method="GET" action="{{ route('admin.doctors.index') }}" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-4 items-center transition-colors">
         <div class="flex-1 min-w-[240px]">
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Lukmanyň ady boýunça gözleg..." class="w-full bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-2 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -25,7 +23,6 @@
         </div>
     </form>
 
-    {{-- Tablisa --}}
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl overflow-hidden transition-colors">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -67,7 +64,6 @@
         </div>
     </div>
 
-    {{-- Paginasiýa --}}
     <div class="mt-6">
         {{ $doctors->withQueryString()->links() }}
     </div>

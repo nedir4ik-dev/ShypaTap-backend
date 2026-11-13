@@ -7,10 +7,8 @@
 @section('content')
 <div class="space-y-6">
 
-    {{-- Statistika Kartlary --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        {{-- Jemi Näsaglar --}}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Jemi Näsaglar</p>
@@ -21,7 +19,6 @@
             </div>
         </div>
 
-        {{-- Jemi Lukmanlar --}}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Jemi Lukmanlar</p>
@@ -32,7 +29,6 @@
             </div>
         </div>
 
-        {{-- Jemi Klinikalar --}}
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm flex items-center justify-between transition-colors">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">Jemi Klinikalar</p>

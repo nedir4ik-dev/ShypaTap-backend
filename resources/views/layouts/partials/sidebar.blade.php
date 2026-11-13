@@ -37,7 +37,6 @@
         </nav>
     </div>
 
-    {{-- Aşaky Bölek: Profil we Logout --}}
     <div class="space-y-3">
 
         <div class="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">

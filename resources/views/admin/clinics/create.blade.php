@@ -7,7 +7,6 @@
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
 
-    {{-- Başlyk we Yzyna gaýtmak --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <i class="ti ti-building-hospital text-blue-600 dark:text-blue-400"></i>
@@ -19,7 +18,6 @@
         </a>
     </div>
 
-    {{-- Ýalňyşlyk Habarlary (Errors) --}}
     @if ($errors->any())
     <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 p-4 rounded-2xl space-y-2">
         <div class="flex items-center gap-2 font-semibold text-sm">
@@ -34,11 +32,9 @@
     </div>
     @endif
 
-    {{-- Form Karta --}}
     <form action="{{ route('admin.clinics.store') }}" method="POST" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6 transition-colors">
         @csrf
 
-        {{-- Klinikanyň Ady --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Klinikanyň Ady</label>
             <div class="relative">
@@ -50,7 +46,6 @@
             </div>
         </div>
 
-        {{-- Email we Telefon --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Elektron Salgysy (Email)</label>
@@ -74,7 +69,6 @@
             </div>
         </div>
 
-        {{-- Şäher --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Şäher</label>
             <div class="relative">

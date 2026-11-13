@@ -7,7 +7,6 @@
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
 
-    {{-- Başlyk we Yzyna gaýtmak --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <i class="ti ti-user-edit text-blue-600 dark:text-blue-400"></i>
@@ -19,7 +18,6 @@
         </a>
     </div>
 
-    {{-- Ýalňyşlyk Habarlary (Errors) --}}
     @if ($errors->any())
     <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 p-4 rounded-2xl space-y-2">
         <div class="flex items-center gap-2 font-semibold text-sm">
@@ -34,12 +32,10 @@
     </div>
     @endif
 
-    {{-- Form Karta --}}
     <form action="{{ route('admin.users.update', $user->id) }}" method="POST" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6 transition-colors">
         @csrf
         @method('PUT')
 
-        {{-- Ady we Familiýasy --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Ady we Familiýasy</label>
             <div class="relative">
@@ -51,7 +47,6 @@
             </div>
         </div>
 
-        {{-- Email we Telefon --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Email Salgysy</label>
@@ -75,7 +70,6 @@
             </div>
         </div>
 
-        {{-- Täze Parol --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Täze Parol (Eger üýtgetmezek bolsaňyz boş goýuň)</label>
             <div class="relative">
@@ -87,7 +81,6 @@
             </div>
         </div>
 
-        {{-- Roly / Derejesi (Role) --}}
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Roly / Derejesi</label>
             <div class="relative">
@@ -103,7 +96,6 @@
             </div>
         </div>
 
-        {{-- Submit Düwmesi --}}
         <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
             <a href="{{ route('admin.users.index') }}" class="px-5 py-2.5 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold transition">
                 Yza gaýtmak

@@ -7,7 +7,6 @@
 @section('content')
 <div class="space-y-6">
 
-    {{-- Üstünlikli Habar (Success Alert) --}}
     @if(session('success'))
     <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-400 px-4 py-3 rounded-2xl text-sm flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-2">
@@ -20,10 +19,8 @@
     </div>
     @endif
 
-    {{-- Esasy Karta --}}
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden transition-colors">
 
-        {{-- Karta Başlygy we Täze Goşmak Düwmesi --}}
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h5 class="font-bold text-gray-900 dark:text-white text-lg flex items-center gap-2">
                 <i class="ti ti-award text-blue-600 dark:text-blue-400"></i>
@@ -35,7 +32,6 @@
             </a>
         </div>
 
-        {{-- Tablisa --}}
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -59,11 +55,9 @@
                         </td>
                         <td class="py-4 px-6 text-end">
                             <div class="inline-flex items-center gap-1.5">
-                                {{-- Üýtgetmek --}}
                                 <a href="{{ route('admin.specializations.edit', $spec->id) }}" class="p-2 text-amber-600 hover:text-white hover:bg-amber-600 dark:text-amber-400 dark:hover:bg-amber-600 rounded-xl transition shadow-xs" title="Üýtgetmek">
                                     <i class="ti ti-edit text-lg"></i>
                                 </a>
-                                {{-- Pozmak --}}
                                 <form action="{{ route('admin.specializations.destroy', $spec->id) }}" method="POST" class="inline" onsubmit="return confirm('Hakykatdan hem bu hünär ugryny pozmak isleýärsiňizmi?')">
                                     @csrf
                                     @method('DELETE')

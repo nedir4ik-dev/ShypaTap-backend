@@ -7,7 +7,6 @@
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">
 
-    {{-- Başlyk we Yzyna gaýtmak / Üýtgetmek Düwmeleri --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <i class="ti ti-building-hospital text-blue-600 dark:text-blue-400"></i>
@@ -25,12 +24,10 @@
         </div>
     </div>
 
-    {{-- Maglumat Kartasy --}}
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden transition-colors p-6 sm:p-8">
 
         <div class="divide-y divide-gray-200 dark:divide-gray-700">
 
-            {{-- ID --}}
             <div class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     <i class="ti ti-hash text-lg"></i> ID:
@@ -38,7 +35,6 @@
                 <span class="text-base font-bold text-gray-900 dark:text-white">#{{ $clinic->id }}</span>
             </div>
 
-            {{-- Email --}}
             <div class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     <i class="ti ti-mail text-lg"></i> Email:
@@ -46,7 +42,6 @@
                 <span class="text-base font-medium text-gray-900 dark:text-white">{{ $clinic->email }}</span>
             </div>
 
-            {{-- Telefon --}}
             <div class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     <i class="ti ti-phone text-lg"></i> Telefon:
@@ -54,7 +49,6 @@
                 <span class="text-base font-medium text-gray-900 dark:text-white">{{ $clinic->phone }}</span>
             </div>
 
-            {{-- Şäher --}}
             <div class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     <i class="ti ti-map-pin text-lg"></i> Şäher:
@@ -62,7 +56,6 @@
                 <span class="text-base font-medium text-gray-900 dark:text-white">{{ $clinic->city }}</span>
             </div>
 
-            {{-- Salgy --}}
             <div class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     <i class="ti ti-map text-lg"></i> Salgy:
@@ -70,7 +63,6 @@
                 <span class="text-base font-medium text-gray-900 dark:text-white text-right max-w-xs">{{ $clinic->address }}</span>
             </div>
 
-            {{-- Ýagdaýy --}}
             <div class="py-4 first:pt-0 last:pb-0 flex items-center justify-between">
                 <span class="text-sm font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
                     <i class="ti ti-activity text-lg"></i> Ýagdaýy:

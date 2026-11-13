@@ -12,13 +12,11 @@
 
     <div class="w-full max-w-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-8 transition-colors">
 
-        {{-- Başlyk Bölegi --}}
         <div class="text-center mb-8">
             <h1 class="text-3xl font-extrabold text-blue-600 dark:text-blue-400 mb-2">ŞypaTap</h1>
             <p class="text-sm text-gray-500 dark:text-gray-400">Ulgama girmek üçin maglumatlaryňyzy giriziň</p>
         </div>
 
-        {{-- Ýalňyşlyk Habary (Error) --}}
         @if ($errors->any())
         <div class="mb-6 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
             <i class="ti ti-alert-circle text-lg shrink-0"></i>
@@ -26,11 +24,9 @@
         </div>
         @endif
 
-        {{-- Giriş Formasy --}}
         <form action="{{ route('login') }}" method="POST" class="space-y-5">
             @csrf
 
-            {{-- Email --}}
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Email Salgyňyz</label>
                 <div class="relative">
@@ -48,7 +44,6 @@
                 </div>
             </div>
 
-            {{-- Parol --}}
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Parolyňyz</label>
                 <div class="relative">
@@ -64,7 +59,6 @@
                 </div>
             </div>
 
-            {{-- Giriş Düwmesi --}}
             <button type="submit" class="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/25 transition duration-200 flex items-center justify-center gap-2">
                 <i class="ti ti-login text-xl"></i>
                 Giriş Et
