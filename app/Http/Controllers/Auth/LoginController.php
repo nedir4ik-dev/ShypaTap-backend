@@ -8,13 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // Login sahypasyny görkezmek
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    // Login amalyny ýerine ýetirmek
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -27,7 +25,6 @@ class LoginController extends Controller
 
             $user = Auth::user();
 
-            // Roluna görä degişli sahypa ugratmak
             if ($user->role === 'admin') {
                 return redirect()->intended('/admin/dashboard');
             } elseif ($user->role === 'doctor') {
@@ -42,7 +39,6 @@ class LoginController extends Controller
         ])->onlyInput('email');
     }
 
-    // Ulgamdan çykmak (Logout)
     public function logout(Request $request)
     {
         Auth::logout();

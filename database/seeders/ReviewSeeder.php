@@ -15,8 +15,6 @@ class ReviewSeeder extends Seeder
         $patient = User::where('email', 'patient1@sypatap.test')->firstOrFail();
         $doctor = DoctorProfile::whereHas('user', fn ($q) => $q->where('email', 'doctor1@sypatap.test'))->firstOrFail();
 
-        // Review diňe completed appointment üçin döredilmelidir.
-        // Demo üçin öňki senedäki tamamlanan appointment döredilýär.
         $appointment = Appointment::updateOrCreate(
             ['booking_code' => 'ST-DEMO-REVIEW-0001'],
             [

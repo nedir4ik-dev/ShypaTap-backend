@@ -22,18 +22,15 @@ class AdminClinicController extends Controller
 
         $clinics = $query->latest()->paginate(15);
 
-        // Eger sorag API (JSON) arkaly gelse:
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($clinics);
         }
 
-        // Eger brauzerden admin panel arkaly açylsa Blade view gaýtarýarys:
         return view('admin.clinics.index', compact('clinics'));
     }
 
     public function create(Request $request)
     {
-        // Blade sahypasy üçin create (täze goşmak formasy)
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'API üçin bu ýol ýok.']);
         }
@@ -53,7 +50,6 @@ class AdminClinicController extends Controller
 
     public function edit(Request $request, Clinic $clinic)
     {
-        // Blade sahypasy üçin edit (üýtgetmek formasy)
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['data' => $clinic]);
         }

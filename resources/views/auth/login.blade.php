@@ -5,11 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ŞypaTap - Ulgama Giriş</title>
-
-    {{-- Tabler Icons CDN --}}
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-
-    {{-- Tailwind CSS (Vite) --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 

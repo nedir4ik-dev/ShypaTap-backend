@@ -40,12 +40,10 @@ class AdminAppointmentController extends Controller
 
         $appointments = $query->orderByDesc('appointment_date')->orderByDesc('start_time')->paginate(20);
 
-        // Eger sorag API (JSON) arkaly gelse:
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($appointments);
         }
 
-        // Brauzerden girilende Blade sahypasyny görkezýäris:
         return view('admin.appointments.index', compact('appointments'));
     }
 

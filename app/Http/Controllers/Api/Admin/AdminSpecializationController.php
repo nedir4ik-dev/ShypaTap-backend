@@ -14,14 +14,12 @@ class AdminSpecializationController extends Controller
     {
         $specializations = Specialization::withCount('doctors')->orderBy('name')->paginate(20);
 
-        // Eger sorag API (JSON) arkaly gelse:
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'data' => $specializations,
             ]);
         }
 
-        // Brauzerden girilende Blade sahypasyny görkezýäris:
         return view('admin.specializations.index', compact('specializations'));
     }
 

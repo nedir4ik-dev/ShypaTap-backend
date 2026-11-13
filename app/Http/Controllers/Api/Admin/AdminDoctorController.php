@@ -37,12 +37,10 @@ class AdminDoctorController extends Controller
 
         $doctors = $query->latest()->paginate(15);
 
-        // Eger sorag API (JSON) arkaly gelse:
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($doctors);
         }
 
-        // Brauzerden girilende Blade sahypasyny görkezýäris:
         return view('admin.doctors.index', compact('doctors'));
     }
 

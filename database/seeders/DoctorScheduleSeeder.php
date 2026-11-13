@@ -15,12 +15,10 @@ class DoctorScheduleSeeder extends Seeder
         $clinic1 = Clinic::where('email', 'info@paytagtsaglyk.test')->firstOrFail();
         $clinic2 = Clinic::where('email', 'info@arassaklinika.test')->firstOrFail();
 
-        $doctor1 = DoctorProfile::whereHas('user', fn ($q) => $q->where('email', 'doctor1@sypatap.test'))->firstOrFail();
-        $doctor2 = DoctorProfile::whereHas('user', fn ($q) => $q->where('email', 'doctor2@sypatap.test'))->firstOrFail();
-        $doctor3 = DoctorProfile::whereHas('user', fn ($q) => $q->where('email', 'doctor3@sypatap.test'))->firstOrFail();
+        $doctor1 = DoctorProfile::whereHas('user', fn($q) => $q->where('email', 'doctor1@sypatap.test'))->firstOrFail();
+        $doctor2 = DoctorProfile::whereHas('user', fn($q) => $q->where('email', 'doctor2@sypatap.test'))->firstOrFail();
+        $doctor3 = DoctorProfile::whereHas('user', fn($q) => $q->where('email', 'doctor3@sypatap.test'))->firstOrFail();
 
-        // ISO güni: 1 = Duşenbe, 7 = Ýekşenbe.
-        // Mysal üçin, her klinika üçin dürli sagat goýulýar.
         $schedules = [
             [$clinic1->id, $doctor1->id, 1, '09:00', '13:00'],
             [$clinic2->id, $doctor1->id, 1, '14:00', '18:00'],

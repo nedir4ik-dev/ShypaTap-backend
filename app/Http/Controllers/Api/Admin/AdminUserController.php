@@ -37,12 +37,10 @@ class AdminUserController extends Controller
 
         $users = $query->latest()->paginate(15);
 
-        // Eger sorag API (JSON) arkaly gelse:
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($users);
         }
 
-        // Brauzerden girilende Blade sahypasyny görkezýäris:
         return view('admin.users.index', compact('users'));
     }
 

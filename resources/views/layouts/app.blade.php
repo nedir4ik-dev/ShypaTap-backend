@@ -60,7 +60,6 @@
             }
         }
 
-        // Mobil Sidebar Açmak/Ýapmak üçin Global Funksiýa
         window.toggleSidebar = function() {
             const sidebar = document.getElementById('app-sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');

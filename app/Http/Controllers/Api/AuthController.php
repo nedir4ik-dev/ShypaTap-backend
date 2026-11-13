@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // Täze ulanyjy hasaba almak
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -37,7 +36,6 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // Ulgama girmek
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -68,7 +66,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // Häzirki ulanyjynyň maglumatlary
     public function me(Request $request)
     {
         return response()->json([
@@ -79,7 +76,6 @@ class AuthController extends Controller
         ]);
     }
 
-    // Ulgamdan çykmak
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()?->delete();
