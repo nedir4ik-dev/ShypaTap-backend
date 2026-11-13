@@ -10,7 +10,7 @@ class SpecializationController extends Controller
 {
     public function index(): JsonResponse
     {
-        $specializations = Specialization::withCount('doctors')->get();
+        $specializations = Specialization::where('is_active', true)->withCount('doctors')->get();
         return response()->json($specializations);
     }
 }

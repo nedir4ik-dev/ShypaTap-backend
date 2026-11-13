@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Api\Admin\AdminClinicController;
 use App\Http\Controllers\Api\Admin\AdminDoctorController;
 use App\Http\Controllers\Api\Admin\AdminSpecializationController;
@@ -14,7 +14,8 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
 
         // Admin Dashboard sahypasy (Kontroller arkaly maglumatlary iberýär)
-        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard');
 
         // Admin CRUD resurslary
         Route::resource('clinics', AdminClinicController::class);

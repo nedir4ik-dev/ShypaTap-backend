@@ -88,4 +88,26 @@ class AuthController extends Controller
             'message' => 'Ulgamdan üstünlikli çykdyňyz.',
         ]);
     }
+
+    public function updateProfile(Request $request)
+    {
+        $validated=$request->validate([
+            'name'=>'sometimes|required|string|max:150',
+            'phone'=>'sometimes|nullable|string|max:30',
+            'email'=>'sometimes|required|email|max:255|unique:users,email,'.$request->user()->id,
+        ]);
+        $request->user()->update($validated);
+        return response()->json(['message'=>'Profil täzelendi.','user'=>$request->user()->fresh()]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $v=$request->validate(['current_password'=>'required|string','password'=>'required|string|min:8|confirmed']);
+        if(!Hash::check($v['current_password'],$request->user()->password)) {
+            return response()->json(['message'=>'Häzirki parol nädogry.'],422);
+        }
+        $request->user()->update(['password'=>$v['password']]);
+        $request->user()->tokens()->delete();
+        return response()->json(['message'=>'Parol üýtgedildi. Täzeden ulgama giriň.']);
+    }
 }

@@ -65,4 +65,13 @@ class AdminAppointmentController extends Controller
 
         return view('admin.appointments.show', compact('appointment'));
     }
+
+    public function update(Request $request, Appointment $appointment)
+    {
+        $data=$request->validate(['status'=>['required',Rule::in(Appointment::STATUSES)]]);
+        $allowed=['pending'=>['confirmed','cancelled','rejected'],'confirmed'=>['cancelled','completed','no_show']];
+        abort_unless(in_array($data['status'],$allowed[$appointment->status]??[],true),422,'Bu status geçişine rugsat berilmeýär.');
+        $appointment->update(['status'=>$data['status']]);
+        return response()->json(['message'=>'Kabul ýazgysy täzelendi.','data'=>$appointment]);
+    }
 }

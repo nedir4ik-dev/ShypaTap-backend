@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class AdminDoctorController extends Controller
 {
@@ -104,6 +105,7 @@ class AdminDoctorController extends Controller
             'is_verified' => ['sometimes', 'boolean'],
             'clinic_ids' => ['sometimes', 'array'],
             'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
+            'photo' => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5120'],
         ]);
 
         $doctor = DB::transaction(function () use ($data) {
@@ -128,6 +130,7 @@ class AdminDoctorController extends Controller
             ]);
 
             $doctor->clinics()->sync($data['clinic_ids'] ?? []);
+            if (request()->hasFile('photo')) $doctor->update(['photo_path'=>request()->file('photo')->store('doctors','public')]);
 
             return $doctor;
         });
@@ -161,6 +164,7 @@ class AdminDoctorController extends Controller
             'is_verified' => ['sometimes', 'boolean'],
             'clinic_ids' => ['sometimes', 'array'],
             'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
+            'photo' => ['sometimes','nullable','image','mimes:jpg,jpeg,png,webp','max:5120'],
         ]);
 
         DB::transaction(function () use ($data, $doctor, $user) {
@@ -187,6 +191,10 @@ class AdminDoctorController extends Controller
             if (array_key_exists('clinic_ids', $data)) {
                 $doctor->clinics()->sync($data['clinic_ids']);
             }
+            if (request()->hasFile('photo')) {
+                if ($doctor->photo_path) Storage::disk('public')->delete($doctor->photo_path);
+                $doctor->update(['photo_path'=>request()->file('photo')->store('doctors','public')]);
+            }
         });
 
         if ($request->wantsJson() || $request->is('api/*')) {
@@ -209,5 +217,13 @@ class AdminDoctorController extends Controller
         }
 
         return back()->with('success', 'Lukmanyň tassyklama ýagdaýy üýtgedildi.');
+    }
+
+    public function destroy(Request $request, DoctorProfile $doctor)
+    {
+        $doctor->user()->update(['is_active'=>false]);
+        $doctor->update(['is_verified'=>false]);
+        $doctor->user->tokens()->delete();
+        return response()->json(['message'=>'Lukman hasaby ýapyldy; kabul taryhy saklandy.']);
     }
 }

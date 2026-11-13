@@ -10,7 +10,7 @@ class ClinicController extends Controller
 {
     public function index(): JsonResponse
     {
-        $clinics = Clinic::withCount('doctors')->get();
+        $clinics = Clinic::where('is_active', true)->withCount('doctors')->get();
         return response()->json($clinics);
     }
 }

@@ -42,7 +42,7 @@
 
     {{-- Aşaky Bölek: Profil we Logout --}}
     <div class="space-y-3">
-        
+
         <div class="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
             <div class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/30">
                 {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
@@ -54,7 +54,7 @@
                 </div>
             </div>
         </div>
-        
+
         <hr class="border-gray-200 dark:border-slate-800 my-2">
 
         <form action="{{ route('logout') }}" method="POST">

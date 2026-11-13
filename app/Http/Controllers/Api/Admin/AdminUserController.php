@@ -173,4 +173,12 @@ class AdminUserController extends Controller
 
         return back()->with('success', 'Ulanyjynyň ýagdaýy üýtgedildi.');
     }
+
+    public function destroy(Request $request, User $user)
+    {
+        abort_if($request->user()->id===$user->id,422,'Öz hasabyňyzy pozup bilmersiňiz.');
+        $user->tokens()->delete();
+        $user->delete();
+        return response()->json(['message'=>'Ulanyjy hasaby ýumşak pozuldy.']);
+    }
 }

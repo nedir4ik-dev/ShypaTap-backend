@@ -73,7 +73,7 @@ class AdminClinicController extends Controller
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $data['is_active'] = $request->has('is_active'); // Checkbox üçin
+        if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
 
         $clinic = Clinic::create($data);
 
@@ -97,7 +97,7 @@ class AdminClinicController extends Controller
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $data['is_active'] = $request->has('is_active'); // Checkbox üçin
+        if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
 
         $clinic->update($data);
 
