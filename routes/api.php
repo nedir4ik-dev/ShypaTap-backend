@@ -46,6 +46,8 @@ Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
 });
 Route::middleware(['auth:sanctum', 'role:doctor'])->prefix('doctor')->group(function () {
     Route::get('/dashboard', [AppointmentController::class, 'doctorDashboard']);
+    Route::get('/profile', [DoctorController::class, 'getProfile']);
+    Route::patch('/profile', [DoctorController::class, 'updateProfile']);
     Route::get('/appointments', [AppointmentController::class, 'doctorAppointments']);
     Route::get('/schedules', [DoctorScheduleController::class, 'index']);
     Route::post('/schedules', [DoctorScheduleController::class, 'store']);
