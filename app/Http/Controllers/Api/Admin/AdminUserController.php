@@ -17,6 +17,7 @@ class AdminUserController extends Controller
             'name',
             'email',
             'phone',
+            'avatar_path',
             'role',
             'is_active',
             'created_at',
@@ -57,7 +58,7 @@ class AdminUserController extends Controller
     {
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
-                'data' => $user->only(['id', 'name', 'email', 'phone', 'role', 'is_active', 'created_at']),
+                'data' => $user->only(['id', 'name', 'email', 'phone', 'avatar_url', 'role', 'is_active', 'created_at']),
             ]);
         }
 
@@ -92,7 +93,7 @@ class AdminUserController extends Controller
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Ulanyjy döredildi.',
-                'data' => $user->only(['id', 'name', 'email', 'phone', 'role', 'is_active']),
+                'data' => $user->only(['id', 'name', 'email', 'phone', 'avatar_url', 'role', 'is_active']),
             ], 201);
         }
 
@@ -136,10 +137,14 @@ class AdminUserController extends Controller
 
         $user->update($data);
 
+        if (array_key_exists('is_active', $data) && ! $user->is_active) {
+            $user->tokens()->delete();
+        }
+
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Ulanyjy maglumatlary täzelendi.',
-                'data' => $user->fresh()->only(['id', 'name', 'email', 'phone', 'role', 'is_active']),
+                'data' => $user->fresh()->only(['id', 'name', 'email', 'phone', 'avatar_url', 'role', 'is_active']),
             ]);
         }
 

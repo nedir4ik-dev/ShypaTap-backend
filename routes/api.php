@@ -33,6 +33,8 @@ Route::middleware(['auth:sanctum', 'role:patient,doctor,receptionist,admin'])->g
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/avatar', [AuthController::class, 'uploadAvatar']);
+    Route::delete('/profile/avatar', [AuthController::class, 'deleteAvatar']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'read']);

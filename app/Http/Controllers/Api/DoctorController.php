@@ -28,7 +28,10 @@ class DoctorController extends Controller
     public function show(int $id): JsonResponse
     {
         $doctor = DoctorProfile::with(['user', 'specialization', 'clinics', 'schedules', 'reviews.patient'])
-            ->withAvg('reviews', 'rating')->where('is_verified', true)->findOrFail($id);
+            ->withAvg('reviews', 'rating')
+            ->where('is_verified', true)
+            ->whereHas('user', fn ($query) => $query->where('is_active', true))
+            ->findOrFail($id);
         return response()->json($doctor);
     }
 
@@ -44,64 +47,69 @@ class DoctorController extends Controller
     public function getProfile(Request $request): JsonResponse
     {
         $user = $request->user();
-
-        // Giriş eden lukmanyň profil maglumatlaryny we gatnaşyklaryny alýarys
         $doctor = DoctorProfile::with(['user', 'specialization', 'clinics'])
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$doctor) {
-            return response()->json([
-                'data' => [
-                    'name' => $user->name,
-                    'phone' => $user->phone,
-                    'experience_years' => 0,
-                    'consultation_fee' => 0,
-                    'bio' => ''
-                ]
-            ]);
-        }
-
         return response()->json([
             'data' => [
+                'id' => $doctor?->id,
+                'user' => $user,
                 'name' => $user->name,
                 'phone' => $user->phone,
-                'experience_years' => $doctor->experience_years,
-                'consultation_fee' => $doctor->consultation_fee,
-                'bio' => $doctor->bio,
-                'specialization' => $doctor->specialization?->name
-            ]
+                'avatar_url' => $user->avatar_url,
+                'experience_years' => $doctor?->experience_years ?? 0,
+                'consultation_fee' => $doctor?->consultation_fee ?? 0,
+                'bio' => $doctor?->biography ?? '',
+                'specialization' => $doctor?->specialization?->name,
+                'clinics' => $doctor?->clinics ?? [],
+            ],
         ]);
     }
 
-    public function updateProfile(Request $request, AppointmentAvailabilityService $availabilityService): JsonResponse
+    public function updateProfile(Request $request): JsonResponse
     {
         $user = $request->user();
 
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
-            'experience_years' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'experience_years' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:70'],
             'consultation_fee' => ['sometimes', 'nullable', 'numeric', 'min:0'],
             'bio' => ['sometimes', 'nullable', 'string', 'max:1000'],
         ]);
 
-        $user->update($request->only(['name', 'phone']));
+        $user->update(array_intersect_key($validated, array_flip(['name', 'phone'])));
 
-        $doctor = DoctorProfile::updateOrCreate(
-            ['user_id' => $user->id],
-            $request->only(['experience_years', 'consultation_fee', 'bio'])
-        );
+        $profileData = [];
+        if (array_key_exists('experience_years', $validated)) {
+            $profileData['experience_years'] = $validated['experience_years'] ?? 0;
+        }
+        if (array_key_exists('consultation_fee', $validated)) {
+            $profileData['consultation_fee'] = $validated['consultation_fee'] ?? 0;
+        }
+        if (array_key_exists('bio', $validated)) {
+            $profileData['biography'] = $validated['bio'];
+        }
+
+        if ($profileData) {
+            DoctorProfile::where('user_id', $user->id)->update($profileData);
+        }
+
+        $doctor = DoctorProfile::with(['specialization', 'clinics'])
+            ->where('user_id', $user->id)->first();
 
         return response()->json([
             'message' => 'Profil maglumatlaryňyz üstünlikli täzelendi!',
             'data' => [
-                'name' => $user->name,
-                'phone' => $user->phone,
-                'experience_years' => $doctor->experience_years,
-                'consultation_fee' => $doctor->consultation_fee,
-                'bio' => $doctor->bio,
-            ]
+                'name' => $user->fresh()->name,
+                'phone' => $user->fresh()->phone,
+                'avatar_url' => $user->fresh()->avatar_url,
+                'experience_years' => $doctor?->experience_years ?? 0,
+                'consultation_fee' => $doctor?->consultation_fee ?? 0,
+                'bio' => $doctor?->biography ?? '',
+            ],
         ]);
     }
+
 }

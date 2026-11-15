@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/admin.php'));
         },
     )
+    ->withCommands([__DIR__ . '/../app/Console/Commands'])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'role' => RoleMiddleware::class,

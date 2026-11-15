@@ -11,14 +11,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Storage;
 
 class AdminDoctorController extends Controller
 {
     public function index(Request $request)
     {
         $query = DoctorProfile::with([
-            'user:id,name,email,phone,is_active',
+            'user:id,name,email,phone,is_active,avatar_path',
             'specialization:id,name',
             'clinics:id,name,city',
         ]);
@@ -61,7 +60,7 @@ class AdminDoctorController extends Controller
 
     public function show(Request $request, DoctorProfile $doctor)
     {
-        $doctor->load(['user:id,name,email,phone,is_active', 'specialization', 'clinics']);
+        $doctor->load(['user:id,name,email,phone,is_active,avatar_path', 'specialization', 'clinics']);
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['data' => $doctor]);
@@ -103,7 +102,6 @@ class AdminDoctorController extends Controller
             'is_verified' => ['sometimes', 'boolean'],
             'clinic_ids' => ['sometimes', 'array'],
             'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
-            'photo' => ['nullable','image','mimes:jpg,jpeg,png,webp','max:5120'],
         ]);
 
         $doctor = DB::transaction(function () use ($data) {
@@ -128,7 +126,6 @@ class AdminDoctorController extends Controller
             ]);
 
             $doctor->clinics()->sync($data['clinic_ids'] ?? []);
-            if (request()->hasFile('photo')) $doctor->update(['photo_path'=>request()->file('photo')->store('doctors','public')]);
 
             return $doctor;
         });
@@ -136,7 +133,7 @@ class AdminDoctorController extends Controller
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Lukman döredildi.',
-                'data' => $doctor->load(['user:id,name,email,phone', 'specialization', 'clinics']),
+                'data' => $doctor->load(['user:id,name,email,phone,avatar_path', 'specialization', 'clinics']),
             ], 201);
         }
 
@@ -162,7 +159,6 @@ class AdminDoctorController extends Controller
             'is_verified' => ['sometimes', 'boolean'],
             'clinic_ids' => ['sometimes', 'array'],
             'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
-            'photo' => ['sometimes','nullable','image','mimes:jpg,jpeg,png,webp','max:5120'],
         ]);
 
         DB::transaction(function () use ($data, $doctor, $user) {
@@ -189,16 +185,16 @@ class AdminDoctorController extends Controller
             if (array_key_exists('clinic_ids', $data)) {
                 $doctor->clinics()->sync($data['clinic_ids']);
             }
-            if (request()->hasFile('photo')) {
-                if ($doctor->photo_path) Storage::disk('public')->delete($doctor->photo_path);
-                $doctor->update(['photo_path'=>request()->file('photo')->store('doctors','public')]);
-            }
         });
+
+        if (array_key_exists('is_active', $data) && ! $user->fresh()->is_active) {
+            $user->tokens()->delete();
+        }
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Lukman maglumatlary täzelendi.',
-                'data' => $doctor->fresh()->load(['user:id,name,email,phone,is_active', 'specialization', 'clinics']),
+                'data' => $doctor->fresh()->load(['user:id,name,email,phone,is_active,avatar_path', 'specialization', 'clinics']),
             ]);
         }
 

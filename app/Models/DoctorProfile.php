@@ -27,7 +27,15 @@ class DoctorProfile extends Model
 
     public function getPhotoUrlAttribute(): ?string
     {
-        return $this->photo_path ? Storage::disk('public')->url($this->photo_path) : null;
+        $avatarUrl = $this->user?->avatar_url;
+
+        if ($avatarUrl) {
+            return $avatarUrl;
+        }
+
+        return $this->photo_path && Storage::disk('public')->exists($this->photo_path)
+            ? Storage::disk('public')->url($this->photo_path)
+            : null;
     }
 
     public function user(): BelongsTo
