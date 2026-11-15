@@ -33,4 +33,37 @@ class AdminDashboardController extends Controller
             'recent_appointments' => Appointment::with(['patient:id,name', 'doctor.user:id,name', 'clinic:id,name'])->latest()->take(8)->get(),
         ]);
     }
+    public function show(Appointment $appointment)
+    {
+        $appointment->load(['patient', 'doctor.user', 'clinic', 'specialization']);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $appointment->id,
+                'appointment_number' => $appointment->appointment_number ?? 'ST-' . $appointment->id,
+                'status' => $appointment->status,
+                'appointment_date' => $appointment->appointment_date,
+                'start_time' => $appointment->start_time,
+                'end_time' => $appointment->end_time,
+                'patient' => [
+                    'id' => $appointment->patient?->id,
+                    'name' => $appointment->patient?->name,
+                    'phone' => $appointment->patient?->phone,
+                    'email' => $appointment->patient?->email,
+                ],
+                'doctor' => [
+                    'id' => $appointment->doctor?->id,
+                    'name' => $appointment->doctor?->user?->name,
+                    'specialization' => $appointment->specialization?->name ?? 'Görkezilmedik',
+                ],
+                'clinic' => [
+                    'id' => $appointment->clinic?->id,
+                    'name' => $appointment->clinic?->name,
+                ],
+                'symptoms' => $appointment->symptoms ?? $appointment->notes ?? 'Şikaýat ýazylmady',
+                'created_at' => $appointment->created_at?->format('d.m.Y H:i'),
+            ]
+        ]);
+    }
 }

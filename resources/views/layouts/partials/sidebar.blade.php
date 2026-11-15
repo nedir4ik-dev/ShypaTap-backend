@@ -30,6 +30,12 @@
                 <i class="ti ti-award text-lg"></i>
                 Hünärler
             </a>
+
+            <a href="{{ route('admin.appointments.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.appointments*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 font-semibold' : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10' }}">
+                <i class="ti ti-calendar-event text-lg"></i>
+                Bron Edilmeler
+            </a>
+
             <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.users*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30 font-semibold' : 'text-gray-700 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-white/10' }}">
                 <i class="ti ti-users text-lg"></i>
                 Ulanyjylar
@@ -41,7 +47,11 @@
 
         <div class="flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
             <div class="w-9 h-9 rounded-xl bg-blue-600/20 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm border border-blue-500/30">
-                {{ strtoupper(substr(auth()->user()->name ?? 'A', 0, 1)) }}
+                @if (auth()->user()?->avatar_url)
+                <img src="{{ auth()->user()->avatar_url }}" alt="Profil" class="h-9 w-9 rounded-full object-cover">
+                @else
+                {{ mb_strtoupper(mb_substr(auth()->user()->name ?? 'A', 0, 1)) }}
+                @endif
             </div>
             <div class="overflow-hidden">
                 <div class="text-xs text-gray-500 dark:text-slate-400">Giren ulanyjy:</div>

@@ -29,11 +29,11 @@
                 name="search"
                 value="{{ request('search') }}"
                 placeholder="Ady, email ýa-da telefon boýunça gözleg..."
-                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
 
         <div class="w-full md:w-56">
-            <select name="role" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <select name="role" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">Ähli rollar</option>
                 <option value="patient" {{ request('role') == 'patient' ? 'selected' : '' }}>Näsag (Patient)</option>
                 <option value="doctor" {{ request('role') == 'doctor' ? 'selected' : '' }}>Lukman (Doctor)</option>
@@ -43,7 +43,7 @@
         </div>
 
         <div class="flex items-center gap-2 w-full md:w-auto">
-            <button type="submit" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition">
+            <button type="submit" class="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition">
                 <i class="ti ti-filter text-lg"></i> Filtrle
             </button>
             @if(request('search') || request('role'))
@@ -58,11 +58,11 @@
 
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <h5 class="font-bold text-gray-900 dark:text-white text-lg flex items-center gap-2">
-                <i class="ti ti-users text-emerald-600 dark:text-emerald-400"></i>
+                <i class="ti ti-users text-blue-600 dark:text-blue-400"></i>
                 Ulanyjylaryň Sanawy (Jemi: {{ $users->total() }})
             </h5>
             @if(Route::has('admin.users.create'))
-            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition">
+            <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition">
                 <i class="ti ti-user-plus text-lg"></i>
                 Täze Ulanyjy Goşmak
             </a>

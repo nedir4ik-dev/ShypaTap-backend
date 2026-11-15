@@ -13,12 +13,11 @@ class DashboardController extends Controller
     public function index()
     {
         $totalPatients = User::where('role', 'patient')->count();
-
         $totalDoctors = DoctorProfile::count();
-
         $totalClinics = Clinic::count();
 
-        $recentAppointments = Appointment::latest()
+        $recentAppointments = Appointment::with(['patient', 'doctor.user', 'doctor.specialization', 'clinic'])
+            ->latest()
             ->take(8)
             ->get();
 

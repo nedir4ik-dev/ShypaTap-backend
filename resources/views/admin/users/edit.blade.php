@@ -10,7 +10,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <i class="ti ti-user-edit text-blue-600 dark:text-blue-400"></i>
-            Ulanyjy Üýtgetmek: <span class="text-blue-600 dark:text-blue-400 font-semibold">{{ $user->name }}</span>
+            Ulanyjy Üýtgetmek: <span class="text-blue-600 dark:text-blue-400 font-semibold">#{{ $user->id }} {{ $user->name }}</span>
         </h1>
         <a href="{{ route('admin.users.index') }}" class="inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm font-medium transition">
             <i class="ti ti-arrow-left text-lg"></i>
@@ -35,12 +35,12 @@
     <form action="{{ route('admin.users.update', $user->id) }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8 space-y-6 transition-colors">
         @csrf
 
-        <div class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 p-4">
-            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 p-4">
+            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                 @if($user->avatar_url)
                     <img id="avatar-preview" src="{{ $user->avatar_url }}" alt="Avatar" class="h-full w-full object-cover">
                 @else
-                    <span id="avatar-initial" class="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                    <span id="avatar-initial" class="text-3xl font-bold text-blue-700 dark:text-blue-300">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
                     <img id="avatar-preview" src="" alt="Avatar" class="hidden h-full w-full object-cover">
                 @endif
             </div>
@@ -48,7 +48,7 @@
                 <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100">Profil suraty</label>
                 <input type="file" name="avatar" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                     onchange="previewAvatar(event)"
-                    class="block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-white">
+                    class="block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-white">
                 <p class="text-xs text-gray-500 dark:text-gray-400">JPG/JPEG/PNG, iň köp 3 MB. Serwerde WebP edilýär.</p>
                 @if($user->avatar_url)
                     <label class="inline-flex items-center gap-2 text-sm text-red-600 dark:text-red-400">

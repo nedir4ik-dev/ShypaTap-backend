@@ -22,6 +22,7 @@ class AdminAppointmentController extends Controller
         $query = Appointment::with([
             'patient:id,name,email,phone',
             'doctor.user:id,name',
+            'doctor.specialization:id,name',
             'clinic:id,name,city',
             'createdBy:id,name,role',
         ]);
@@ -38,7 +39,7 @@ class AdminAppointmentController extends Controller
             $query->whereDate('appointment_date', '<=', $data['date_to']);
         }
 
-        $appointments = $query->orderByDesc('appointment_date')->orderByDesc('start_time')->paginate(20);
+        $appointments = $query->orderByDesc('appointment_date')->orderByDesc('start_time')->paginate(20)->withQueryString();
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json($appointments);
@@ -50,10 +51,12 @@ class AdminAppointmentController extends Controller
     public function show(Request $request, Appointment $appointment)
     {
         $appointment->load([
-            'patient:id,name,email,phone',
-            'doctor.user:id,name',
-            'clinic:id,name,city',
+            'patient:id,name,email,phone,avatar_path',
+            'doctor.user:id,name,email,phone,avatar_path',
+            'doctor.specialization:id,name',
+            'clinic:id,name,city,address,phone',
             'createdBy:id,name,role',
+            'payment',
             'review',
         ]);
 
@@ -66,10 +69,41 @@ class AdminAppointmentController extends Controller
 
     public function update(Request $request, Appointment $appointment)
     {
-        $data=$request->validate(['status'=>['required',Rule::in(Appointment::STATUSES)]]);
-        $allowed=['pending'=>['confirmed','cancelled','rejected'],'confirmed'=>['cancelled','completed','no_show']];
-        abort_unless(in_array($data['status'],$allowed[$appointment->status]??[],true),422,'Bu status geçişine rugsat berilmeýär.');
-        $appointment->update(['status'=>$data['status']]);
-        return response()->json(['message'=>'Kabul ýazgysy täzelendi.','data'=>$appointment]);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(Appointment::STATUSES)],
+            'cancellation_reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $allowed = [
+            'pending' => ['confirmed', 'cancelled', 'rejected'],
+            'confirmed' => ['cancelled', 'completed', 'no_show'],
+        ];
+
+        if (!in_array($data['status'], $allowed[$appointment->status] ?? [], true)) {
+            if ($request->wantsJson() || $request->is('api/*')) {
+                abort(422, 'Bu status geçişine rugsat berilmeýär.');
+            }
+            return back()->with('error', 'Bu status geçişine rugsat berilmeýär.');
+        }
+
+        $updates = ['status' => $data['status']];
+        if ($data['status'] === 'confirmed') {
+            $updates['confirmed_at'] = now();
+        } elseif (in_array($data['status'], ['cancelled', 'rejected'], true)) {
+            $updates['cancelled_at'] = now();
+            if (!empty($data['cancellation_reason'])) {
+                $updates['cancellation_reason'] = $data['cancellation_reason'];
+            }
+        } elseif ($data['status'] === 'completed') {
+            $updates['completed_at'] = now();
+        }
+
+        $appointment->update($updates);
+
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Kabul ýazgysy täzelendi.', 'data' => $appointment->fresh()]);
+        }
+
+        return back()->with('success', 'Bron ýagdaýy üstünlikli täzelendi.');
     }
 }

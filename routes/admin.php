@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Api\Admin\AdminAppointmentController;
 use App\Http\Controllers\Api\Admin\AdminClinicController;
 use App\Http\Controllers\Api\Admin\AdminDoctorController;
 use App\Http\Controllers\Api\Admin\AdminSpecializationController;
@@ -15,6 +16,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
 
+        Route::resource('appointments', AdminAppointmentController::class)->only(['index', 'show', 'update']);
         Route::resource('clinics', AdminClinicController::class);
         Route::resource('doctors', AdminDoctorController::class);
         Route::patch('doctors/{doctor}/verification', [AdminDoctorController::class, 'updateVerification'])->name('doctors.verification');
