@@ -85,9 +85,15 @@
                     @forelse($users as $user)
                     <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition">
                         <td class="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">#{{ $user->id }}</td>
-                        <td class="py-4 px-6 font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                            <i class="ti ti-user-circle text-emerald-500 text-xl"></i>
+                        <td class="py-4 px-6 font-semibold text-gray-900 dark:text-white">
+                        <div class="flex items-center gap-3">
+                            @if($user->avatar_url)
+                                <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-9 w-9 rounded-full object-cover">
+                            @else
+                                <span class="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 flex items-center justify-center font-bold">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                            @endif
                             {{ $user->name }}
+                        </div>
                         </td>
                         <td class="py-4 px-6 text-gray-600 dark:text-gray-300">{{ $user->email }}</td>
                         <td class="py-4 px-6 text-gray-600 dark:text-gray-300">{{ $user->phone ?? 'Görkezilmedik' }}</td>

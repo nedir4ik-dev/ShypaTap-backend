@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\AvatarService;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -74,7 +75,7 @@ class AdminUserController extends Controller
         return view('admin.users.edit', compact('user'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AvatarService $avatars)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -83,12 +84,19 @@ class AdminUserController extends Controller
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', Rule::in(['patient', 'doctor', 'receptionist', 'admin'])],
             'is_active' => ['sometimes', 'boolean'],
+            'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
         ]);
 
+        $avatarFile = $request->file('avatar');
+        unset($data['avatar']);
         $data['is_active'] = $request->has('is_active');
         $data['password'] = Hash::make($data['password']);
 
         $user = User::create($data);
+        if ($avatarFile) {
+            $avatars->replace($user, $avatarFile);
+            $user->refresh();
+        }
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
@@ -100,7 +108,7 @@ class AdminUserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'Ulanyjy üstünlikli döredildi.');
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, User $user, AvatarService $avatars)
     {
         $actor = $request->user();
 
@@ -118,6 +126,8 @@ class AdminUserController extends Controller
             'password' => ['sometimes', 'required', 'string', 'min:8'],
             'role' => ['sometimes', 'required', Rule::in(['patient', 'doctor', 'receptionist', 'admin'])],
             'is_active' => ['sometimes', 'boolean'],
+            'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
+            'remove_avatar' => ['sometimes', 'boolean'],
         ]);
 
         if ($actor->id === $user->id && array_key_exists('is_active', $data) && !$data['is_active']) {
@@ -126,6 +136,10 @@ class AdminUserController extends Controller
             }
             return back()->withErrors(['is_active' => 'Öz hasabyňyzy öçürip bilmersiňiz.']);
         }
+
+        $avatarFile = $request->file('avatar');
+        $removeAvatar = $request->boolean('remove_avatar');
+        unset($data['avatar'], $data['remove_avatar']);
 
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
@@ -136,6 +150,11 @@ class AdminUserController extends Controller
         }
 
         $user->update($data);
+        if ($avatarFile) {
+            $avatars->replace($user->fresh(), $avatarFile);
+        } elseif ($removeAvatar) {
+            $avatars->remove($user->fresh());
+        }
 
         if (array_key_exists('is_active', $data) && ! $user->is_active) {
             $user->tokens()->delete();

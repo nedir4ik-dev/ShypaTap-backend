@@ -38,7 +38,16 @@
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                     @forelse($doctors as $doctor)
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
-                        <td class="p-4 font-semibold text-gray-900 dark:text-white">{{ $doctor->user->name ?? 'N/A' }}</td>
+                        <td class="p-4 font-semibold text-gray-900 dark:text-white">
+                        <div class="flex items-center gap-3">
+                            @if($doctor->user?->avatar_url)
+                                <img src="{{ $doctor->user->avatar_url }}" alt="{{ $doctor->user->name }}" class="h-9 w-9 rounded-full object-cover">
+                            @else
+                                <span class="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 flex items-center justify-center font-bold">{{ mb_strtoupper(mb_substr($doctor->user->name ?? 'L', 0, 1)) }}</span>
+                            @endif
+                            {{ $doctor->user->name ?? 'N/A' }}
+                        </div>
+                    </td>
                         <td class="p-4 text-gray-600 dark:text-gray-300">
                             <div>{{ $doctor->user->email ?? '' }}</div>
                             <div class="text-xs text-gray-400">{{ $doctor->user->phone ?? '' }}</div>

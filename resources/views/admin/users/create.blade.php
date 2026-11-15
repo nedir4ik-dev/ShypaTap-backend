@@ -31,8 +31,23 @@
     @endif
 
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-6 sm:p-8">
-        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
+
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 p-4">
+            <div class="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                <span id="avatar-initial" class="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{{ mb_strtoupper(mb_substr(old('name', 'U'), 0, 1)) }}</span>
+                <img id="avatar-preview" src="" alt="Avatar" class="hidden h-full w-full object-cover">
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-800 dark:text-gray-100">Profil suraty (islege görä)</label>
+                <input type="file" name="avatar" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                    onchange="previewAvatar(event)"
+                    class="block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-600 file:px-3 file:py-2 file:text-white">
+                <p class="text-xs text-gray-500 dark:text-gray-400">JPG/JPEG/PNG, iň köp 3 MB. Serwerde WebP edilýär.</p>
+            </div>
+        </div>
+        
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div class="space-y-1.5">
@@ -87,4 +102,26 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function previewAvatar(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+        alert('Diňe JPG/JPEG/PNG we iň köp 3 MB surat saýlaň.');
+        event.target.value = '';
+        return;
+    }
+    const preview = document.getElementById('avatar-preview');
+    const initial = document.getElementById('avatar-initial');
+    if (preview) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('hidden');
+    }
+    if (initial) initial.classList.add('hidden');
+}
+</script>
+@endpush
+
 @endsection

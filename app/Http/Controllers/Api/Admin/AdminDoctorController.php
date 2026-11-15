@@ -7,6 +7,7 @@ use App\Models\Clinic;
 use App\Models\DoctorProfile;
 use App\Models\Specialization;
 use App\Models\User;
+use App\Services\AvatarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -86,7 +87,7 @@ class AdminDoctorController extends Controller
         return view('admin.doctors.edit', compact('doctor', 'specializations', 'clinics'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, AvatarService $avatars)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -102,7 +103,11 @@ class AdminDoctorController extends Controller
             'is_verified' => ['sometimes', 'boolean'],
             'clinic_ids' => ['sometimes', 'array'],
             'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
+            'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
         ]);
+
+        $avatarFile = $request->file('avatar');
+        unset($data['avatar']);
 
         $doctor = DB::transaction(function () use ($data) {
             $user = User::create([
@@ -130,6 +135,10 @@ class AdminDoctorController extends Controller
             return $doctor;
         });
 
+        if ($avatarFile) {
+            $avatars->replace($doctor->user, $avatarFile);
+        }
+
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'message' => 'Lukman döredildi.',
@@ -140,7 +149,7 @@ class AdminDoctorController extends Controller
         return redirect()->route('admin.doctors.index')->with('success', 'Lukman üstünlikli döredildi.');
     }
 
-    public function update(Request $request, DoctorProfile $doctor)
+    public function update(Request $request, DoctorProfile $doctor, AvatarService $avatars)
     {
         $user = $doctor->user;
 
@@ -159,7 +168,13 @@ class AdminDoctorController extends Controller
             'is_verified' => ['sometimes', 'boolean'],
             'clinic_ids' => ['sometimes', 'array'],
             'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
+            'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
+            'remove_avatar' => ['sometimes', 'boolean'],
         ]);
+
+        $avatarFile = $request->file('avatar');
+        $removeAvatar = $request->boolean('remove_avatar');
+        unset($data['avatar'], $data['remove_avatar']);
 
         DB::transaction(function () use ($data, $doctor, $user) {
             $userData = array_intersect_key($data, array_flip(['name', 'email', 'phone', 'is_active', 'password']));
@@ -186,6 +201,12 @@ class AdminDoctorController extends Controller
                 $doctor->clinics()->sync($data['clinic_ids']);
             }
         });
+
+        if ($avatarFile) {
+            $avatars->replace($user->fresh(), $avatarFile);
+        } elseif ($removeAvatar) {
+            $avatars->remove($user->fresh());
+        }
 
         if (array_key_exists('is_active', $data) && ! $user->fresh()->is_active) {
             $user->tokens()->delete();
