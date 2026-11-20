@@ -67,6 +67,11 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
+    public function settings(): HasMany
+    {
+        return $this->hasMany(UserSetting::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

@@ -27,7 +27,7 @@ class DoctorController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $doctor = DoctorProfile::with(['user', 'specialization', 'clinics', 'schedules', 'reviews.patient'])
+        $doctor = DoctorProfile::with(['user', 'specialization', 'clinics', 'schedules', 'reviews:id,doctor_profile_id,appointment_id,rating,comment,created_at'])
             ->withAvg('reviews', 'rating')
             ->where('is_verified', true)
             ->whereHas('user', fn ($query) => $query->where('is_active', true))

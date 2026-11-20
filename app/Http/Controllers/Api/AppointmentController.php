@@ -91,17 +91,74 @@ class AppointmentController extends Controller
 
     public function storeReview(Request $request, int $id): JsonResponse
     {
-        $v=$request->validate(['rating'=>'required|integer|min:1|max:5','comment'=>'nullable|string|max:1000']);
-        $a=Appointment::where('id',$id)->where('patient_id',$request->user()->id)->where('status','completed')->firstOrFail();
-        $review=Review::firstOrCreate(['appointment_id'=>$a->id],['patient_id'=>$a->patient_id,'doctor_profile_id'=>$a->doctor_profile_id,'rating'=>$v['rating'],'comment'=>$v['comment']??null]);
-        return response()->json(['message'=>'Pikiriňiz kabul edildi.','data'=>$review],201);
+        $v = $request->validate([
+            'rating' => ['required', 'numeric', 'between:1,5', 'decimal:0,1'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $appointment = Appointment::whereKey($id)
+            ->where('patient_id', $request->user()->id)
+            ->where('status', 'completed')
+            ->firstOrFail();
+
+        if (Review::where('appointment_id', $appointment->id)->exists()) {
+            return response()->json(['message' => 'Bu kabul üçin baha öň berlipdir.'], 409);
+        }
+
+        $review = Review::create([
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'doctor_profile_id' => $appointment->doctor_profile_id,
+            'rating' => $v['rating'],
+            'comment' => $v['comment'] ?? null,
+        ]);
+
+        return response()->json(['message' => 'Pikiriňiz kabul edildi.', 'data' => $review], 201);
+    }
+
+    public function deleteReview(Request $request, int $id): JsonResponse
+    {
+        $review = Review::whereKey($id)->where('patient_id', $request->user()->id)->firstOrFail();
+        $review->delete();
+
+        return response()->json(['message' => 'Bahalandyrmaňyz pozuldy.']);
+    }
+
+    public function doctorAppointmentShow(Request $request, int $id): JsonResponse
+    {
+        $profile = $request->user()->doctorProfile;
+        abort_unless($profile, 404, 'Lukman profili tapylmady.');
+
+        $appointment = Appointment::with([
+            'patient:id,name,email,phone,avatar_path',
+            'createdBy:id,name,role',
+            'doctor.user:id,name',
+            'clinic:id,name,address,phone',
+            'payment.histories.actor:id,name,role',
+            'review.patient:id,name,avatar_path',
+        ])->where('doctor_profile_id', $profile->id)->findOrFail($id);
+
+        return response()->json(['data' => $appointment]);
+    }
+
+    public function doctorReviews(Request $request): JsonResponse
+    {
+        $profile = $request->user()->doctorProfile;
+        abort_unless($profile, 404, 'Lukman profili tapylmady.');
+
+        $reviews = Review::with(['patient:id,name,avatar_path', 'appointment:id,booking_code,appointment_date'])
+            ->where('doctor_profile_id', $profile->id)
+            ->latest()
+            ->paginate(20);
+
+        return response()->json($reviews);
     }
 
     public function doctorAppointments(Request $request): JsonResponse
     {
         $profile=$request->user()->doctorProfile;
         abort_unless($profile,404,'Lukman profili tapylmady.');
-        return response()->json(Appointment::with(['patient','clinic','payment'])->where('doctor_profile_id',$profile->id)
+        return response()->json(Appointment::with(['patient','clinic','payment','review'])->where('doctor_profile_id',$profile->id)
             ->when($request->filled('status'),fn($q)=>$q->where('status',$request->string('status')))
             ->when($request->filled('date'),fn($q)=>$q->whereDate('appointment_date',$request->date))
             ->orderBy('appointment_date')->orderBy('start_time')->paginate(20));

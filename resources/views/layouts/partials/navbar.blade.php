@@ -1,33 +1,35 @@
-<header class="sticky top-0 z-30 bg-linear-to-r from-white/40 via-white/20 to-white/30 dark:from-gray-900/40
-dark:via-gray-800/25 dark:to-gray-900/30 backdrop-blur-sm border border-white/50 dark:border-white/10 w-full
-mt-5 mb-2 mx-auto px-6 py-3 flex justify-between items-center rounded-[200px] transition-all duration-300 
-shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] ring-1 ring-white/20 
-dark:ring-white/5">
+@php
+$user = auth()->user();
+$initial = mb_strtoupper(mb_substr($user?->name ?? 'A', 0, 1));
+@endphp
 
-    <div class="flex items-center gap-3">
-        <button onclick="toggleSidebar()" class="md:hidden pt-2 pb-1 px-2 rounded-full bg-white/40 dark:bg-gray-800/40 text-gray-800 dark:text-gray-100 hover:bg-white/60 dark:hover:bg-gray-700/50 backdrop-blur-md border border-white/40 dark:border-white/10 transition shadow-sm focus:outline-none">
-            <i class="ti ti-menu-2 text-xl"></i>
+<header class="flex min-h-16 w-full items-center justify-between gap-4 rounded-4xl border border-slate-200/80 bg-white/30 px-4 py-2.5 shadow-sm backdrop-blur-sm dark:border-slate-300/30 dark:bg-slate-900/30 sm:px-5">
+    <div class="flex min-w-0 items-center gap-3">
+        <button type="button" onclick="toggleSidebar()" aria-label="Menýuny aç"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-3xl border border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 md:hidden">
+            <i class="ti ti-menu-2 text-xl leading-none"></i>
         </button>
-
-        <div class="text-lg font-semibold text-gray-900 dark:text-white drop-shadow-sm">
-            @yield('header', 'Dolandyryş Paneli')
+        <div class="truncate text-base font-bold text-slate-900 dark:text-white sm:text-lg">
+            @yield('header', 'Dolandyryş paneli')
         </div>
     </div>
 
-    <div class="flex items-center gap-4">
-        <button onclick="toggleDarkMode()"
-            class="pt-2 pb-1 px-2 rounded-4xl bg-white/40 dark:bg-gray-800/40 text-gray-800 dark:text-gray-100 hover:bg-white/60 dark:hover:bg-gray-700/50 backdrop-blur-md border border-white/40 dark:border-white/10 transition shadow-sm focus:outline-none"
-            title="Rejimi Üýtget">
-            <i id="theme-icon" class="ti ti-moon text-xl"></i>
+    <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+        <button type="button" onclick="toggleDarkMode()" title="Režimi üýtget" aria-label="Režimi üýtget"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+            <i id="theme-icon" class="ti ti-moon text-xl leading-none"></i>
         </button>
 
-        <a href="{{ route('admin.dashboard') }}" class="hidden md:flex items-center gap-2.5 rounded-full px-2 py-1 text-sm font-medium transition text-gray-800 dark:text-gray-100 bg-white/30 dark:bg-gray-800/30 hover:bg-white/50 dark:hover:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-sm" title="Şahsy profil">
-            @if (auth()->user()?->avatar_url)
-            <img src="{{ auth()->user()->avatar_url }}" alt="Profil" class="h-9 w-9 rounded-full object-cover ring-2 ring-white/50 dark:ring-white/10">
+        <a href="{{ route('admin.dashboard') }}"
+            class="flex max-w-48 items-center gap-2 rounded-4xl border border-slate-200 px-1.5 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800">
+            @if ($user?->avatar_url)
+            <img src="{{ $user->avatar_url }}" alt="Profil" class="h-8 w-8 shrink-0 rounded-full object-cover">
             @else
-            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/20 font-bold text-emerald-800 dark:text-emerald-300 ring-2 ring-white/50 dark:ring-white/10">{{\Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr(auth()->user()->name ?? 'A', 0, 1))}}</span>
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold leading-none text-blue-700 dark:bg-blue-500/45 dark:text-blue-300">
+                {{ $initial }}
+            </span>
             @endif
-            <span class="hidden sm:inline font-medium">{{ auth()->user()->name ?? 'Admin' }}</span>
+            <span class="hidden truncate sm:inline">{{ $user?->name ?? 'Admin' }}</span>
         </a>
     </div>
 </header>

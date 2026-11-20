@@ -43,7 +43,7 @@
                             @if($doctor->user?->avatar_url)
                                 <img src="{{ $doctor->user->avatar_url }}" alt="{{ $doctor->user->name }}" class="h-9 w-9 rounded-full object-cover">
                             @else
-                                <span class="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 flex items-center justify-center font-bold">{{ mb_strtoupper(mb_substr($doctor->user->name ?? 'L', 0, 1)) }}</span>
+                                <span class="h-9 w-9 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center justify-center font-bold">{{ mb_strtoupper(mb_substr($doctor->user->name ?? 'L', 0, 1)) }}</span>
                             @endif
                             {{ $doctor->user->name ?? 'N/A' }}
                         </div>

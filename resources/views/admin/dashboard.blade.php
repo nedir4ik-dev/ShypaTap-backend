@@ -7,7 +7,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm flex items-center justify-between transition-colors">
             <div>

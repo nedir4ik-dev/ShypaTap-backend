@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\ReceptionistController;
 use App\Http\Controllers\Api\DoctorScheduleController;
 use App\Http\Controllers\Api\Admin\AdminPaymentController;
 use App\Http\Controllers\Api\Admin\AdminSettingController;
+use App\Http\Controllers\Api\Admin\AdminReviewController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\UserSettingController;
 
 
 Route::middleware('throttle:5,1')->group(function () {
@@ -39,12 +42,15 @@ Route::middleware(['auth:sanctum', 'role:patient,doctor,receptionist,admin'])->g
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::patch('/notifications/{id}/read', [NotificationController::class, 'read']);
     Route::patch('/notifications/read-all', [NotificationController::class, 'readAll']);
+    Route::get('/settings/me', [UserSettingController::class, 'show']);
+    Route::patch('/settings/me', [UserSettingController::class, 'update']);
 });
 Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/my-appointments', [AppointmentController::class, 'myAppointments']);
     Route::patch('/appointments/{id}/cancel', [AppointmentController::class, 'cancel']);
     Route::post('/appointments/{id}/review', [AppointmentController::class, 'storeReview']);
+    Route::delete('/reviews/{id}', [AppointmentController::class, 'deleteReview']);
 });
 Route::middleware(['auth:sanctum', 'role:doctor'])->prefix('doctor')->group(function () {
     Route::get('/dashboard', [AppointmentController::class, 'doctorDashboard']);
@@ -59,6 +65,9 @@ Route::middleware(['auth:sanctum', 'role:doctor'])->prefix('doctor')->group(func
     Route::post('/days-off', [DoctorScheduleController::class, 'addDayOff']);
     Route::delete('/days-off/{id}', [DoctorScheduleController::class, 'deleteDayOff']);
     Route::patch('/appointments/{id}/status', [AppointmentController::class, 'updateStatus']);
+    Route::get('/appointments/{id}', [AppointmentController::class, 'doctorAppointmentShow']);
+    Route::get('/reviews', [AppointmentController::class, 'doctorReviews']);
+    Route::patch('/payments/{payment}', [PaymentController::class, 'update']);
 });
 Route::middleware(['auth:sanctum', 'role:receptionist,admin'])->prefix('receptionist')->group(function () {
     Route::get('/dashboard', [ReceptionistController::class, 'dashboard']);
@@ -66,6 +75,8 @@ Route::middleware(['auth:sanctum', 'role:receptionist,admin'])->prefix('receptio
     Route::post('/appointments', [AppointmentController::class, 'storeForPatient']);
     Route::get('/patients', [ReceptionistController::class, 'patients']);
     Route::get('/doctors', [ReceptionistController::class, 'doctors']);
+    Route::get('/payments', [PaymentController::class, 'receptionistIndex']);
+    Route::patch('/payments/{payment}', [PaymentController::class, 'update']);
 });
 Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index']);
@@ -80,4 +91,5 @@ Route::middleware(['auth:sanctum', 'role:admin'])->prefix('admin')->group(functi
     Route::get('/settings', [AdminSettingController::class, 'index']);
     Route::patch('/settings', [AdminSettingController::class, 'update']);
     Route::get('/reports', [AdminDashboardController::class, 'index']);
+    Route::apiResource('reviews', AdminReviewController::class)->only(['index', 'destroy']);
 });

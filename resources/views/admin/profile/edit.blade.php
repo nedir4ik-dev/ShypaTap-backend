@@ -20,7 +20,7 @@
             @if ($user->avatar_url)
             <img src="{{ $user->avatar_url }}" alt="Profil suraty" class="h-20 w-20 rounded-full object-cover">
             @else
-            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-3xl font-bold text-emerald-800">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</div>
+            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-3xl font-bold text-blue-800">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</div>
             @endif
             <div>
                 <p class="font-semibold text-gray-900 dark:text-white">{{ $user->name }}</p>
@@ -30,7 +30,7 @@
         <form action="{{ route('admin.profile.avatar.upload') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
             @csrf
             <input type="file" name="avatar" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required class="max-w-full text-sm text-gray-700 dark:text-gray-300">
-            <button class="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">Suraty ýükle</button>
+            <button class="rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">Suraty ýükle</button>
         </form>
         @if ($user->avatar_url)
         <form action="{{ route('admin.profile.avatar.delete') }}" method="POST" class="mt-3" onsubmit="return confirm('Profil suratyny aýyrmak isleýärsiňizmi?')">
@@ -55,7 +55,7 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Telefon
                 <input name="phone" value="{{ old('phone', $user->phone) }}" class="mt-1 w-full rounded-xl border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-900 dark:text-white">
             </label>
-            <button class="rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white hover:bg-emerald-800">Maglumatlary sakla</button>
+            <button class="rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800">Maglumatlary sakla</button>
         </form>
     </section>
 </div>

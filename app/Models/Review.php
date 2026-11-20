@@ -14,7 +14,7 @@ class Review extends Model
 
     protected function casts(): array
     {
-        return ['rating' => 'integer'];
+        return ['rating' => 'decimal:1'];
     }
 
     public function appointment(): BelongsTo
