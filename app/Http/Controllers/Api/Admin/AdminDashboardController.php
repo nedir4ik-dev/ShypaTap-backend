@@ -56,13 +56,13 @@ class AdminDashboardController extends Controller
     }
     public function show(Appointment $appointment)
     {
-        $appointment->load(['patient', 'doctor.user', 'doctor.specialization', 'clinic']);
+        $appointment->load(['patient', 'doctor.user', 'clinic', 'specialization']);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'id' => $appointment->id,
-                'appointment_number' => $appointment->booking_code ?? 'ST-' . $appointment->id,
+                'appointment_number' => $appointment->appointment_number ?? 'ST-' . $appointment->id,
                 'status' => $appointment->status,
                 'appointment_date' => $appointment->appointment_date,
                 'start_time' => $appointment->start_time,
@@ -76,13 +76,13 @@ class AdminDashboardController extends Controller
                 'doctor' => [
                     'id' => $appointment->doctor?->id,
                     'name' => $appointment->doctor?->user?->name,
-                    'specialization' => $appointment->doctor?->specialization?->name ?? 'Görkezilmedik',
+                    'specialization' => $appointment->specialization?->name ?? 'Görkezilmedik',
                 ],
                 'clinic' => [
                     'id' => $appointment->clinic?->id,
                     'name' => $appointment->clinic?->name,
                 ],
-                'symptoms' => $appointment->reason ?? $appointment->notes ?? 'Şikaýat ýazylmady',
+                'symptoms' => $appointment->symptoms ?? $appointment->notes ?? 'Şikaýat ýazylmady',
                 'created_at' => $appointment->created_at?->format('d.m.Y H:i'),
             ]
         ]);

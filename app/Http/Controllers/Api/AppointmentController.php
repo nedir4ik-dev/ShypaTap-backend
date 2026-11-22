@@ -11,7 +11,6 @@ use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\Setting;
 use App\Services\AppointmentAvailabilityService;
-use App\Support\ClinicTimezone;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -32,7 +31,7 @@ class AppointmentController extends Controller
         $v=$request->validate([
             'doctor_profile_id'=>'required|integer|exists:doctor_profiles,id',
             'clinic_id'=>'required|integer|exists:clinics,id',
-            'appointment_date'=>'required|date_format:Y-m-d',
+            'appointment_date'=>'required|date_format:Y-m-d|after_or_equal:today',
             'start_time'=>'required|date_format:H:i',
             'reason'=>'nullable|string|max:1000','patient_phone'=>'required|string|max:30',
             'notes'=>'nullable|string|max:2000',
@@ -43,7 +42,7 @@ class AppointmentController extends Controller
                 ->whereHas('user',fn($q)=>$q->where('is_active',true))->lockForUpdate()->firstOrFail();
             abort_unless(\App\Models\Clinic::whereKey($v['clinic_id'])->where('is_active',true)->exists(),422,'Saýlanan klinika işjeň däl.');
             $schedule=DoctorSchedule::where('doctor_profile_id',$v['doctor_profile_id'])
-                ->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'], ClinicTimezone::forClinic((int) $v['clinic_id']))->dayOfWeekIso)
+                ->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'], \App\Models\Clinic::whereKey($v['clinic_id'])->value('timezone') ?: config('app.timezone'))->dayOfWeekIso)
                 ->where('is_active',true)->lockForUpdate()->first();
             if (!$schedule) throw ValidationException::withMessages(['start_time'=>['Lukman bu gün kabul etmeýär.']]);
             $duration=(int)$schedule->slot_duration_minutes;
@@ -79,7 +78,7 @@ class AppointmentController extends Controller
         $a=DB::transaction(function() use($request,$id,$v) {
             $a=Appointment::with('clinic')->where('id',$id)->where('patient_id',$request->user()->id)->lockForUpdate()->firstOrFail();
             if (!in_array($a->status,['pending','confirmed'],true)) abort(422,'Bu kabul ýazgysyny ýatyryp bolmaýar.');
-            $timezone = ClinicTimezone::forClinic($a->clinic_id);
+            $timezone = $a->clinic?->timezone ?: config('app.timezone', 'Asia/Ashgabat');
             $when=Carbon::parse($a->appointment_date->toDateString().' '.$a->start_time, $timezone);
             $hours=(int)(Setting::where('key','cancellation_hours')->value('value') ?? 12);
             if (now($timezone)->diffInMinutes($when,false)<($hours*60)) abort(422,'Kabul wagtyna '.$hours.' sagatdan az galanda özbaşdak ýatyryp bolmaýar.');
@@ -115,25 +114,17 @@ class AppointmentController extends Controller
             ->where('status', 'completed')
             ->firstOrFail();
 
-        $existing = Review::withTrashed()->where('appointment_id', $appointment->id)->first();
-        if ($existing && ! $existing->trashed()) {
+        if (Review::where('appointment_id', $appointment->id)->exists()) {
             return response()->json(['message' => 'Bu kabul üçin baha öň berlipdir.'], 409);
         }
 
-        if ($existing) {
-            abort_unless($existing->patient_id === $request->user()->id, 403);
-            $existing->update(['rating' => $v['rating'], 'comment' => $v['comment'] ?? null]);
-            $existing->restore();
-            $review = $existing->fresh();
-        } else {
-            $review = Review::create([
-                'appointment_id' => $appointment->id,
-                'patient_id' => $appointment->patient_id,
-                'doctor_profile_id' => $appointment->doctor_profile_id,
-                'rating' => $v['rating'],
-                'comment' => $v['comment'] ?? null,
-            ]);
-        }
+        $review = Review::create([
+            'appointment_id' => $appointment->id,
+            'patient_id' => $appointment->patient_id,
+            'doctor_profile_id' => $appointment->doctor_profile_id,
+            'rating' => $v['rating'],
+            'comment' => $v['comment'] ?? null,
+        ]);
 
         return response()->json(['message' => 'Pikiriňiz kabul edildi.', 'data' => $review], 201);
     }
@@ -240,7 +231,7 @@ class AppointmentController extends Controller
 
     public function storeForPatient(Request $request): JsonResponse
     {
-        $v=$request->validate(['patient_id'=>'required|exists:users,id','doctor_profile_id'=>'required|exists:doctor_profiles,id','clinic_id'=>'required|exists:clinics,id','appointment_date'=>'required|date_format:Y-m-d','start_time'=>'required|date_format:H:i','patient_phone'=>'required|string|max:30','reason'=>'nullable|string|max:1000','notes'=>'nullable|string|max:2000']);
+        $v=$request->validate(['patient_id'=>'required|exists:users,id','doctor_profile_id'=>'required|exists:doctor_profiles,id','clinic_id'=>'required|exists:clinics,id','appointment_date'=>'required|date_format:Y-m-d|after_or_equal:today','start_time'=>'required|date_format:H:i','patient_phone'=>'required|string|max:30','reason'=>'nullable|string|max:1000','notes'=>'nullable|string|max:2000']);
         $clinicAllowed=$request->user()->staffClinics()->where('clinics.id',$v['clinic_id'])->exists() || $request->user()->role==='admin';
         abort_unless($clinicAllowed,403,'Bu klinika üçin rugsadyňyz ýok.');
         $patient=\App\Models\User::where('id',$v['patient_id'])->where('role','patient')->firstOrFail();
@@ -248,7 +239,7 @@ class AppointmentController extends Controller
             $doctorProfile=DoctorProfile::whereKey($v['doctor_profile_id'])->where('is_verified',true)
                 ->whereHas('user',fn($q)=>$q->where('is_active',true))->lockForUpdate()->firstOrFail();
             abort_unless(\App\Models\Clinic::whereKey($v['clinic_id'])->where('is_active',true)->exists(),422,'Saýlanan klinika işjeň däl.');
-            $schedule=DoctorSchedule::where('doctor_profile_id',$v['doctor_profile_id'])->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'], ClinicTimezone::forClinic((int) $v['clinic_id']))->dayOfWeekIso)->where('is_active',true)->lockForUpdate()->first();
+            $schedule=DoctorSchedule::where('doctor_profile_id',$v['doctor_profile_id'])->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'], \App\Models\Clinic::whereKey($v['clinic_id'])->value('timezone') ?: config('app.timezone'))->dayOfWeekIso)->where('is_active',true)->lockForUpdate()->first();
             if(!$schedule) abort(422,'Lukman bu gün kabul etmeýär.');
             $start=Carbon::createFromFormat('H:i',$v['start_time']); $end=$start->copy()->addMinutes($schedule->slot_duration_minutes);
             $this->availability->assertAvailable($v['doctor_profile_id'],$v['clinic_id'],$v['appointment_date'],$start->format('H:i:s'),$end->format('H:i:s'));

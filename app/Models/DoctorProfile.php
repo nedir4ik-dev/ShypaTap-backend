@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Storage;
 #[Fillable(['user_id', 'specialization_id', 'experience_years', 'education', 'biography', 'consultation_fee', 'currency', 'photo_path', 'is_verified'])]
 class DoctorProfile extends Model
 {
+    use SoftDeletes;
+
     use HasFactory;
 
     protected function casts(): array
@@ -52,7 +55,6 @@ class DoctorProfile extends Model
     {
         return $this->belongsToMany(Clinic::class, 'clinic_doctors')
             ->using(ClinicDoctor::class)
-            ->withPivot('permissions')
             ->withTimestamps();
     }
 

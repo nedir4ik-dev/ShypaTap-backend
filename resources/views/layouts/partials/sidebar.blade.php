@@ -10,8 +10,6 @@ $navItems = [
 ['route' => 'admin.appointments.index', 'active' => 'admin.appointments*', 'icon' => 'ti-calendar-event', 'label' => 'Bron edilmeler'],
 ['route' => 'admin.users.index', 'active' => 'admin.users*', 'icon' => 'ti-users', 'label' => 'Ulanyjylar'],
 ['route' => 'admin.payments.index', 'active' => 'admin.payments*', 'icon' => 'ti-cash', 'label' => 'Tölegler'],
-['route' => 'admin.reports.index', 'active' => 'admin.reports*', 'icon' => 'ti-chart-bar', 'label' => 'Hasabatlar'],
-['route' => 'admin.permissions.index', 'active' => 'admin.permissions*', 'icon' => 'ti-shield-check', 'label' => 'Rugsatlar'],
 ['route' => 'admin.reviews.index', 'active' => 'admin.reviews*', 'icon' => 'ti-star', 'label' => 'Bahalandyrmalar'],
 ['route' => 'admin.settings.edit', 'active' => 'admin.settings*', 'icon' => 'ti-settings', 'label' => 'Sazlamalar'],
 ];

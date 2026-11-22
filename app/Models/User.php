@@ -59,7 +59,6 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Clinic::class, 'clinic_staff')
             ->using(ClinicStaff::class)
-            ->withPivot('permissions')
             ->withTimestamps();
     }
 
@@ -71,6 +70,33 @@ class User extends Authenticatable
     public function settings(): HasMany
     {
         return $this->hasMany(UserSetting::class);
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_roles')->withPivot('clinic_id')->withTimestamps();
+    }
+
+    public function permissionOverrides(): HasMany
+    {
+        return $this->hasMany(UserPermissionOverride::class);
+    }
+
+    public function hasPermission(string $permission, ?int $clinicId = null): bool
+    {
+        if ($this->role === 'superadmin') return true;
+
+        $permissionId = Permission::query()->where('name', $permission)->value('id');
+        if (! $permissionId) return false;
+
+        $override = $this->permissionOverrides()->where('permission_id', $permissionId)
+            ->where(function ($query) use ($clinicId) { $query->whereNull('clinic_id'); if ($clinicId) $query->orWhere('clinic_id', $clinicId); })
+            ->orderByRaw('clinic_id is null')->value('effect');
+        if ($override !== null) return $override === 'allow';
+
+        return $this->roles()->whereHas('permissions', fn ($query) => $query->where('name', $permission))
+            ->where(function ($query) use ($clinicId) { $query->whereNull('user_roles.clinic_id'); if ($clinicId) $query->orWhere('user_roles.clinic_id', $clinicId); })
+            ->exists();
     }
 
     public function isAdmin(): bool

@@ -10,8 +10,7 @@ class AdminReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $query = $request->boolean('archived') ? Review::onlyTrashed() : Review::query();
-        $reviews = $query->with([
+        $reviews = Review::with([
             'patient:id,name,email',
             'doctor.user:id,name',
             'appointment:id,booking_code,appointment_date,status',
@@ -24,24 +23,14 @@ class AdminReviewController extends Controller
         return view('admin.reviews.index', compact('reviews'));
     }
 
-    public function restore(Request $request, int $id)
-    {
-        $review = Review::onlyTrashed()->findOrFail($id);
-        $review->restore();
-        if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json(['message' => 'Review dikeldildi.', 'data' => $review]);
-        }
-        return back()->with('success', 'Bahalandyrma dikeldildi.');
-    }
-
     public function destroy(Request $request, Review $review)
     {
         $review->delete();
 
         if ($request->expectsJson() || $request->is('api/*')) {
-            return response()->json(['message' => 'Review arhiwe geçirildi.']);
+            return response()->json(['message' => 'Review pozuldy.']);
         }
 
-        return back()->with('success', 'Bahalandyrma arhiwe geçirildi.');
+        return back()->with('success', 'Bahalandyrma pozuldy.');
     }
 }

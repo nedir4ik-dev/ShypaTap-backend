@@ -64,8 +64,7 @@ class AdminPaymentController extends Controller
             $locked->update([
                 'status' => $newStatus,
                 'payment_method' => $newMethod,
-                'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : $locked->paid_at,
-                'refunded_at' => $newStatus === 'refunded' ? ($locked->refunded_at ?? now()) : $locked->refunded_at,
+                'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : null,
             ]);
 
             $locked->histories()->create([

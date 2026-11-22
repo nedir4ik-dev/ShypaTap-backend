@@ -87,14 +87,6 @@
         </div>
 
         <div>
-            <label class="mb-2 block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Klinikanyň wagt zolagy (Timezone)</label>
-            <input type="text" name="timezone" value="{{ old('timezone', $defaultTimezone ?? 'Asia/Ashgabat') }}" required
-                class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
-                placeholder="Asia/Ashgabat">
-            <p class="mt-1 text-xs text-gray-500">IANA ady ulanyň. Mysal: Asia/Ashgabat, Europe/Helsinki.</p>
-        </div>
-
-        <div>
             <label class="flex items-center space-x-3 cursor-pointer">
                 <input type="checkbox" name="is_active" value="1" {{ old('is_active', true) ? 'checked' : '' }}
                     class="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500 dark:bg-gray-900">

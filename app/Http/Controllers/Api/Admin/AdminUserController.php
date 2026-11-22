@@ -5,19 +5,15 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Services\AvatarService;
 use App\Models\User;
-use App\Models\Clinic;
-use App\Models\Specialization;
-use App\Models\DoctorProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ($request->boolean('archived') ? User::onlyTrashed() : User::query())->select([
+        $query = User::query()->select([
             'id',
             'name',
             'email',
@@ -56,10 +52,7 @@ class AdminUserController extends Controller
             return response()->json(['message' => 'API üçin bu ýol ýok.']);
         }
 
-        return view('admin.users.create', [
-            'specializations' => Specialization::orderBy('name')->get(),
-            'clinics' => Clinic::where('is_active', true)->orderBy('name')->get(),
-        ]);
+        return view('admin.users.create');
     }
 
     public function show(Request $request, User $user)
@@ -91,14 +84,6 @@ class AdminUserController extends Controller
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', Rule::in(['patient', 'doctor', 'receptionist', 'admin'])],
             'is_active' => ['sometimes', 'boolean'],
-            'specialization_id' => ['required_if:role,doctor', 'nullable', 'integer', 'exists:specializations,id'],
-            'experience_years' => ['nullable', 'integer', 'min:0', 'max:70'],
-            'education' => ['nullable', 'string'],
-            'biography' => ['nullable', 'string'],
-            'consultation_fee' => ['nullable', 'numeric', 'min:0'],
-            'currency' => ['nullable', 'string', 'size:3'],
-            'clinic_ids' => ['required_if:role,doctor,receptionist', 'array', 'min:1'],
-            'clinic_ids.*' => ['integer', 'distinct', 'exists:clinics,id'],
             'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
         ]);
 
@@ -107,33 +92,7 @@ class AdminUserController extends Controller
         $data['is_active'] = $request->has('is_active');
         $data['password'] = Hash::make($data['password']);
 
-        $clinicIds = $data['clinic_ids'] ?? [];
-        $doctorData = array_intersect_key($data, array_flip([
-            'specialization_id', 'experience_years', 'education', 'biography', 'consultation_fee', 'currency',
-        ]));
-        unset($data['clinic_ids'], $data['specialization_id'], $data['experience_years'], $data['education'],
-            $data['biography'], $data['consultation_fee'], $data['currency']);
-
-        $user = DB::transaction(function () use ($data, $clinicIds, $doctorData) {
-            $user = User::create($data);
-            if ($user->role === 'doctor') {
-                $doctor = DoctorProfile::create([
-                    'user_id' => $user->id,
-                    'specialization_id' => $doctorData['specialization_id'],
-                    'experience_years' => $doctorData['experience_years'] ?? 0,
-                    'education' => $doctorData['education'] ?? null,
-                    'biography' => $doctorData['biography'] ?? null,
-                    'consultation_fee' => $doctorData['consultation_fee'] ?? 0,
-                    'currency' => $doctorData['currency'] ?? 'TMT',
-                    'is_verified' => false,
-                ]);
-                $doctor->clinics()->sync($clinicIds);
-            } elseif ($user->role === 'receptionist' && $clinicIds) {
-                $user->staffClinics()->sync($clinicIds);
-            }
-            return $user;
-        });
-
+        $user = User::create($data);
         if ($avatarFile) {
             $avatars->replace($user, $avatarFile);
             $user->refresh();
@@ -237,54 +196,11 @@ class AdminUserController extends Controller
         return back()->with('success', 'Ulanyjynyň ýagdaýy üýtgedildi.');
     }
 
-
-    public function updateClinicPermissions(Request $request, User $user)
-    {
-        abort_unless($user->role === 'receptionist', 422, 'Klinika rugsatlary diňe registrator üçin sazlanýar.');
-        $data = $request->validate([
-            'clinic_id' => ['required', 'integer', 'exists:clinics,id'],
-            'permissions' => ['present', 'array'],
-            'permissions.*' => ['nullable', 'string', Rule::in([
-                'dashboard.view', 'appointments.view', 'appointments.create',
-                'patients.view', 'doctors.view', 'payments.view', 'payments.manage',
-            ])],
-        ]);
-
-        $permissions = array_values(array_unique(array_filter($data['permissions'], fn ($value) => filled($value))));
-        $user->staffClinics()->syncWithoutDetaching([
-            $data['clinic_id'] => ['permissions' => $permissions],
-        ]);
-
-        if (! $request->expectsJson() && ! $request->is('api/*')) {
-            return back()->with('success', 'Registratoryň klinika rugsatlary täzelendi.');
-        }
-
-        return response()->json([
-            'message' => 'Klinika boýunça rugsatlar täzelendi.',
-            'data' => $user->staffClinics()->get(),
-        ]);
-    }
-
-    public function restore(Request $request, int $id)
-    {
-        $user = User::onlyTrashed()->findOrFail($id);
-        $user->restore();
-
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json(['message' => 'Ulanyjy dikeldildi.', 'data' => $user]);
-        }
-        return back()->with('success', 'Ulanyjy dikeldildi.');
-    }
-
     public function destroy(Request $request, User $user)
     {
         abort_if($request->user()->id === $user->id, 422, 'Öz hasabyňyzy pozup bilmersiňiz.');
         $user->tokens()->delete();
         $user->delete();
-
-        if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json(['message' => 'Ulanyjy arhiwe geçirildi.']);
-        }
-        return back()->with('success', 'Ulanyjy arhiwe geçirildi.');
+        return response()->json(['message' => 'Ulanyjy hasaby ýumşak pozuldy.']);
     }
 }
