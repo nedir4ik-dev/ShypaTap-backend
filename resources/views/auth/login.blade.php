@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ŞypaTap - Ulgama Giriş</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @stack('styles')
 </head>
 
 <body class="h-full bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors duration-200">
@@ -64,9 +66,37 @@
                 Giriş Et
             </button>
         </form>
-
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+            updateThemeIcon(storedTheme);
+        });
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const newTheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.className = theme === 'dark' ?
+                'ti ti-sun text-xl text-amber-400' :
+                'ti ti-moon text-xl';
+        }
+
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+            if (backdrop) backdrop.classList.toggle('hidden');
+        };
+    </script>
+    @stack('scripts')
 </body>
 
 </html>
