@@ -10,6 +10,23 @@ use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
+    public function receptionistIndex(Request $request)
+    {
+        $user = $request->user();
+        $clinicIds = $user->role === 'admin'
+            ? \App\Models\Clinic::query()->pluck('id')
+            : $user->staffClinics()->pluck('clinics.id');
+
+        $payments = Payment::query()
+            ->with(['appointment.patient:id,name,phone', 'appointment.doctor.user:id,name', 'appointment.clinic:id,name', 'histories.actor:id,name'])
+            ->whereHas('appointment', fn ($q) => $q->whereIn('clinic_id', $clinicIds))
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
+            ->latest()
+            ->paginate(20)->withQueryString();
+
+        return response()->json($payments);
+    }
+
     public function update(Request $request, Payment $payment)
     {
         $data = $request->validate([
@@ -20,6 +37,9 @@ class PaymentController extends Controller
 
         $user = $request->user();
         $appointment = $payment->appointment()->with('doctor')->firstOrFail();
+        if (($data['status'] ?? null) === 'refunded') {
+            abort_unless(in_array($user->role, ['admin', 'doctor', 'receptionist'], true), 403);
+        }
 
         if ($user->role === 'doctor') {
             abort_unless($appointment->doctor?->user_id === $user->id, 403, 'Bu töleg siziň kabul ýazgyňyza degişli däl.');
@@ -49,7 +69,7 @@ class PaymentController extends Controller
             $locked->update([
                 'status' => $newStatus,
                 'payment_method' => $newMethod,
-                'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : null,
+                'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : $locked->paid_at,
             ]);
 
             $locked->histories()->create([

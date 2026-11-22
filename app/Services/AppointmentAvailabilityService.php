@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\Clinic;
 use App\Models\DoctorDayOff;
 use App\Models\DoctorSchedule;
 use Carbon\Carbon;
@@ -12,7 +13,7 @@ class AppointmentAvailabilityService
 {
     public function slots(int $doctorProfileId, int $clinicId, string $date): array
     {
-        $timezone = config('app.timezone', 'Asia/Ashgabat');
+        $timezone = Clinic::whereKey($clinicId)->value('timezone') ?: config('app.timezone', 'Asia/Ashgabat');
         $day = Carbon::parse($date, $timezone);
         if ($day->toDateString() < Carbon::today($timezone)->toDateString()) return [];
 
@@ -26,6 +27,7 @@ class AppointmentAvailabilityService
             ->where('clinic_id', $clinicId)->whereDate('off_date', $day->toDateString())->exists()) return [];
 
         $busy = Appointment::query()->where('doctor_profile_id', $doctorProfileId)
+            ->where('clinic_id', $clinicId)
             ->whereDate('appointment_date', $day->toDateString())
             ->whereIn('status', ['pending', 'confirmed'])->get(['start_time', 'end_time']);
 
@@ -54,7 +56,7 @@ class AppointmentAvailabilityService
 
     public function assertAvailable(int $doctorProfileId, int $clinicId, string $date, string $start, string $end): DoctorSchedule
     {
-        $tz = config('app.timezone', 'Asia/Ashgabat');
+        $tz = Clinic::whereKey($clinicId)->value('timezone') ?: config('app.timezone', 'Asia/Ashgabat');
         $day = Carbon::parse($date, $tz);
         if ($day->toDateString() < Carbon::today($tz)->toDateString()) {
             throw ValidationException::withMessages(['appointment_date'=>['Geçen senä bron edip bolmaýar.']]);
@@ -80,6 +82,7 @@ class AppointmentAvailabilityService
             throw ValidationException::withMessages(['start_time'=>['Geçen wagta bron edip bolmaýar.']]);
         }
         $overlap = Appointment::where('doctor_profile_id',$doctorProfileId)
+            ->where('clinic_id',$clinicId)
             ->whereDate('appointment_date',$date)->whereIn('status',['pending','confirmed'])
             ->where('start_time','<',$end)->where('end_time','>',$start)->exists();
         if ($overlap) throw ValidationException::withMessages(['start_time'=>['Bu wagt eýýäm bron edilen. Başga wagt saýlaň.']]);

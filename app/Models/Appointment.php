@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
     'duration_minutes',
     'status',
     'reason',
+    'patient_phone',
+    'notes',
     'cancellation_reason',
     'confirmed_at',
     'cancelled_at',

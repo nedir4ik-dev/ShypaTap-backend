@@ -42,7 +42,7 @@ class AppointmentController extends Controller
                 ->whereHas('user',fn($q)=>$q->where('is_active',true))->lockForUpdate()->firstOrFail();
             abort_unless(\App\Models\Clinic::whereKey($v['clinic_id'])->where('is_active',true)->exists(),422,'Saýlanan klinika işjeň däl.');
             $schedule=DoctorSchedule::where('doctor_profile_id',$v['doctor_profile_id'])
-                ->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'])->dayOfWeekIso)
+                ->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'], \App\Models\Clinic::whereKey($v['clinic_id'])->value('timezone') ?: config('app.timezone'))->dayOfWeekIso)
                 ->where('is_active',true)->lockForUpdate()->first();
             if (!$schedule) throw ValidationException::withMessages(['start_time'=>['Lukman bu gün kabul etmeýär.']]);
             $duration=(int)$schedule->slot_duration_minutes;
@@ -76,12 +76,25 @@ class AppointmentController extends Controller
     {
         $v=$request->validate(['reason'=>'nullable|string|max:500']);
         $a=DB::transaction(function() use($request,$id,$v) {
-            $a=Appointment::where('id',$id)->where('patient_id',$request->user()->id)->lockForUpdate()->firstOrFail();
+            $a=Appointment::with('clinic')->where('id',$id)->where('patient_id',$request->user()->id)->lockForUpdate()->firstOrFail();
             if (!in_array($a->status,['pending','confirmed'],true)) abort(422,'Bu kabul ýazgysyny ýatyryp bolmaýar.');
-            $when=Carbon::parse($a->appointment_date->toDateString().' '.$a->start_time,config('app.timezone'));
+            $timezone = $a->clinic?->timezone ?: config('app.timezone', 'Asia/Ashgabat');
+            $when=Carbon::parse($a->appointment_date->toDateString().' '.$a->start_time, $timezone);
             $hours=(int)(Setting::where('key','cancellation_hours')->value('value') ?? 12);
-            if (now(config('app.timezone'))->diffInMinutes($when,false)<($hours*60)) abort(422,'Kabul wagtyna '.$hours.' sagatdan az galanda özbaşdak ýatyryp bolmaýar.');
+            if (now($timezone)->diffInMinutes($when,false)<($hours*60)) abort(422,'Kabul wagtyna '.$hours.' sagatdan az galanda özbaşdak ýatyryp bolmaýar.');
             $a->update(['status'=>'cancelled','cancelled_at'=>now(),'cancellation_reason'=>$v['reason']??'Näsag tarapyndan ýatyryldy']);
+            $payment = Payment::where('appointment_id', $a->id)->lockForUpdate()->first();
+            if ($payment && $payment->status === 'pending') {
+                $payment->update(['status' => 'cancelled']);
+                $payment->histories()->create([
+                    'actor_user_id' => $request->user()->id,
+                    'old_status' => 'pending',
+                    'new_status' => 'cancelled',
+                    'old_payment_method' => $payment->payment_method,
+                    'new_payment_method' => $payment->payment_method,
+                    'note' => 'Näsag bronuny ýatyrdy.',
+                ]);
+            }
             $doctor=$a->doctor()->with('user')->first();
             if($doctor) $this->notify($doctor->user_id,'Kabul ýatyryldy','Näsag kabul ýazgysyny ýatyrdy.','appointment_cancelled',['appointment_id'=>$a->id]);
             return $a;
@@ -141,6 +154,25 @@ class AppointmentController extends Controller
         return response()->json(['data' => $appointment]);
     }
 
+    public function doctorCalendar(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'from' => ['required', 'date_format:Y-m-d'],
+            'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'clinic_id' => ['sometimes', 'integer', 'exists:clinics,id'],
+        ]);
+        $profile = $request->user()->doctorProfile;
+        abort_unless($profile, 404, 'Lukman profili tapylmady.');
+
+        $appointments = Appointment::with(['patient:id,name,phone,avatar_path', 'clinic:id,name,timezone', 'payment:id,appointment_id,status,amount,currency'])
+            ->where('doctor_profile_id', $profile->id)
+            ->whereBetween('appointment_date', [$data['from'], $data['to']])
+            ->when(isset($data['clinic_id']), fn ($q) => $q->where('clinic_id', $data['clinic_id']))
+            ->orderBy('appointment_date')->orderBy('start_time')->get();
+
+        return response()->json(['data' => $appointments]);
+    }
+
     public function doctorReviews(Request $request): JsonResponse
     {
         $profile = $request->user()->doctorProfile;
@@ -177,6 +209,20 @@ class AppointmentController extends Controller
             if($v['status']==='confirmed') $updates['confirmed_at']=now();
             if($v['status']==='completed') $updates['completed_at']=now();
             $a->update($updates);
+            if (in_array($v['status'], ['rejected'], true)) {
+                $payment = Payment::where('appointment_id', $a->id)->lockForUpdate()->first();
+                if ($payment && $payment->status === 'pending') {
+                    $payment->update(['status' => 'cancelled']);
+                    $payment->histories()->create([
+                        'actor_user_id' => $profile->user_id,
+                        'old_status' => 'pending',
+                        'new_status' => 'cancelled',
+                        'old_payment_method' => $payment->payment_method,
+                        'new_payment_method' => $payment->payment_method,
+                        'note' => 'Bron lukman tarapyndan ret edildi.',
+                    ]);
+                }
+            }
             $this->notify($a->patient_id,'Kabul ýazgysy täzelendi','Kabul ýazgyňyzyň ýagdaýy: '.$v['status'],'appointment_'.$v['status'],['appointment_id'=>$a->id]);
             return $a;
         });
@@ -193,7 +239,7 @@ class AppointmentController extends Controller
             $doctorProfile=DoctorProfile::whereKey($v['doctor_profile_id'])->where('is_verified',true)
                 ->whereHas('user',fn($q)=>$q->where('is_active',true))->lockForUpdate()->firstOrFail();
             abort_unless(\App\Models\Clinic::whereKey($v['clinic_id'])->where('is_active',true)->exists(),422,'Saýlanan klinika işjeň däl.');
-            $schedule=DoctorSchedule::where('doctor_profile_id',$v['doctor_profile_id'])->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'])->dayOfWeekIso)->where('is_active',true)->lockForUpdate()->first();
+            $schedule=DoctorSchedule::where('doctor_profile_id',$v['doctor_profile_id'])->where('clinic_id',$v['clinic_id'])->where('day_of_week',Carbon::parse($v['appointment_date'], \App\Models\Clinic::whereKey($v['clinic_id'])->value('timezone') ?: config('app.timezone'))->dayOfWeekIso)->where('is_active',true)->lockForUpdate()->first();
             if(!$schedule) abort(422,'Lukman bu gün kabul etmeýär.');
             $start=Carbon::createFromFormat('H:i',$v['start_time']); $end=$start->copy()->addMinutes($schedule->slot_duration_minutes);
             $this->availability->assertAvailable($v['doctor_profile_id'],$v['clinic_id'],$v['appointment_date'],$start->format('H:i:s'),$end->format('H:i:s'));

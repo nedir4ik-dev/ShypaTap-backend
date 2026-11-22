@@ -15,22 +15,43 @@ class AdminDashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $paid = Payment::where('status', 'paid');
+        $filters = $request->validate([
+            'clinic_id' => ['sometimes', 'integer', 'exists:clinics,id'],
+            'doctor_profile_id' => ['sometimes', 'integer', 'exists:doctor_profiles,id'],
+            'month' => ['sometimes', 'date_format:Y-m'],
+            'payment_status' => ['sometimes', 'in:pending,paid,refunded,cancelled'],
+            'status' => ['sometimes', 'in:pending,confirmed,cancelled,rejected,completed,no_show'],
+        ]);
+
+        $appointments = Appointment::query()
+            ->when(isset($filters['clinic_id']), fn ($q) => $q->where('clinic_id', $filters['clinic_id']))
+            ->when(isset($filters['doctor_profile_id']), fn ($q) => $q->where('doctor_profile_id', $filters['doctor_profile_id']))
+            ->when(isset($filters['month']), fn ($q) => $q->whereRaw("to_char(appointment_date, 'YYYY-MM') = ?", [$filters['month']]))
+            ->when(isset($filters['status']), fn ($q) => $q->where('status', $filters['status']));
+
+        $paymentQuery = Payment::query()->whereHas('appointment', function ($q) use ($filters) {
+            $q->when(isset($filters['clinic_id']), fn ($q) => $q->where('clinic_id', $filters['clinic_id']))
+                ->when(isset($filters['doctor_profile_id']), fn ($q) => $q->where('doctor_profile_id', $filters['doctor_profile_id']))
+                ->when(isset($filters['month']), fn ($q) => $q->whereRaw("to_char(appointment_date, 'YYYY-MM') = ?", [$filters['month']]));
+        })->when(isset($filters['payment_status']), fn ($q) => $q->where('status', $filters['payment_status']));
+
+        $paid = (clone $paymentQuery)->where('status', 'paid');
         return response()->json([
             'total_users' => User::count(),
             'total_patients' => User::where('role', 'patient')->count(),
             'total_doctors' => DoctorProfile::count(),
             'total_receptionists' => User::where('role', 'receptionist')->count(),
             'total_clinics' => Clinic::count(),
-            'total_appointments' => Appointment::count(),
-            'pending_appointments' => Appointment::where('status', 'pending')->count(),
-            'confirmed_appointments' => Appointment::where('status', 'confirmed')->count(),
-            'cancelled_appointments' => Appointment::where('status', 'cancelled')->count(),
-            'completed_appointments' => Appointment::where('status', 'completed')->count(),
+            'total_appointments' => (clone $appointments)->count(),
+            'pending_appointments' => (clone $appointments)->where('status', 'pending')->count(),
+            'confirmed_appointments' => (clone $appointments)->where('status', 'confirmed')->count(),
+            'cancelled_appointments' => (clone $appointments)->where('status', 'cancelled')->count(),
+            'completed_appointments' => (clone $appointments)->where('status', 'completed')->count(),
             'paid_total' => (clone $paid)->sum('amount'),
             'paid_count' => (clone $paid)->count(),
-            'revenue_by_month' => Payment::where('status', 'paid')->whereNotNull('paid_at')->selectRaw("to_char(paid_at, 'YYYY-MM') as month, SUM(amount) as total")->groupBy('month')->orderBy('month')->get(),
-            'recent_appointments' => Appointment::with(['patient:id,name', 'doctor.user:id,name', 'clinic:id,name'])->latest()->take(8)->get(),
+            'revenue_by_month' => (clone $paid)->whereNotNull('paid_at')->selectRaw("to_char(paid_at, 'YYYY-MM') as month, SUM(amount) as total")->groupBy('month')->orderBy('month')->get(),
+            'recent_appointments' => (clone $appointments)->with(['patient:id,name', 'doctor.user:id,name', 'clinic:id,name'])->latest()->take(8)->get(),
+            'filters' => $filters,
         ]);
     }
     public function show(Appointment $appointment)
