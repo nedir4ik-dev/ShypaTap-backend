@@ -6,6 +6,10 @@
 
 @section('content')
 <div class="space-y-6">
+    <div class="flex gap-2">
+        <a href="{{ route('admin.clinics.index') }}" class="rounded-lg px-3 py-2 text-sm {{ !request('archived') ? 'bg-emerald-600 text-white' : 'border border-gray-200 dark:border-gray-700' }}">Işjeň klinikalar</a>
+        <a href="{{ route('admin.clinics.index', ['archived' => 1]) }}" class="rounded-lg px-3 py-2 text-sm {{ request('archived') ? 'bg-emerald-600 text-white' : 'border border-gray-200 dark:border-gray-700' }}">Arhiw</a>
+    </div>
 
     @if(session('success'))
     <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-400 px-4 py-3 rounded-2xl text-sm flex items-center justify-between shadow-sm">
@@ -67,6 +71,9 @@
                         </td>
                         <td class="py-4 px-6 text-end">
                             <div class="inline-flex items-center gap-1.5">
+                                @if($clinic->trashed())
+                                <form action="{{ route('admin.clinics.restore', $clinic->id) }}" method="POST">@csrf @method('PATCH')<button class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">Dikelt</button></form>
+                                @else
                                 <a href="{{ route('admin.clinics.show', $clinic->id) }}" class="p-2 text-sky-600 hover:text-white hover:bg-sky-600 dark:text-sky-400 dark:hover:bg-sky-600 rounded-xl transition shadow-xs" title="Maglumaty Gör">
                                     <i class="ti ti-eye text-lg"></i>
                                 </a>
@@ -80,6 +87,7 @@
                                         <i class="ti ti-trash text-lg"></i>
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </td>
                     </tr>

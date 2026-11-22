@@ -6,6 +6,10 @@
 
 @section('content')
 <div class="space-y-6">
+    <div class="flex gap-2">
+        <a href="{{ route('admin.users.index') }}" class="rounded-lg px-3 py-2 text-sm {{ !request('archived') ? 'bg-emerald-600 text-white' : 'border border-gray-200 dark:border-gray-700' }}">Işjeň ulanyjylar</a>
+        <a href="{{ route('admin.users.index', ['archived' => 1]) }}" class="rounded-lg px-3 py-2 text-sm {{ request('archived') ? 'bg-emerald-600 text-white' : 'border border-gray-200 dark:border-gray-700' }}">Arhiw</a>
+    </div>
 
     @if(session('success'))
     <div class="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-400 px-4 py-3 rounded-2xl text-sm flex items-center justify-between shadow-sm">
@@ -104,6 +108,9 @@
                         </td>
                         <td class="py-4 px-6 text-end">
                             <div class="inline-flex items-center gap-1.5">
+                                @if($user->trashed())
+                                <form action="{{ route('admin.users.restore', $user->id) }}" method="POST">@csrf @method('PATCH')<button class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">Dikelt</button></form>
+                                @else
                                 @if(Route::has('admin.users.edit'))
                                 <a href="{{ route('admin.users.edit', $user->id) }}" class="p-2 text-amber-600 hover:text-white hover:bg-amber-600 dark:text-amber-400 dark:hover:bg-amber-600 rounded-xl transition shadow-xs" title="Üýtgetmek">
                                     <i class="ti ti-edit text-lg"></i>
@@ -118,6 +125,7 @@
                                         <i class="ti ti-trash text-lg"></i>
                                     </button>
                                 </form>
+                                @endif
                                 @endif
                             </div>
                         </td>

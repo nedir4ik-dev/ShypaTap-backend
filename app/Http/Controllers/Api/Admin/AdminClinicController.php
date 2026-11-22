@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +12,7 @@ class AdminClinicController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Clinic::query()->withCount(['doctors', 'appointments']);
+        $query = ($request->boolean('archived') ? Clinic::onlyTrashed() : Clinic::query())->withCount(['doctors', 'appointments']);
 
         if ($request->filled('city')) {
             $query->where('city', 'ilike', '%' . $request->string('city')->toString() . '%');
@@ -34,7 +35,7 @@ class AdminClinicController extends Controller
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'API üçin bu ýol ýok.']);
         }
-        return view('admin.clinics.create');
+        return view('admin.clinics.create', ['defaultTimezone' => Setting::where('key', 'timezone')->value('value') ?: config('app.timezone', 'Asia/Ashgabat')]);
     }
 
     public function show(Request $request, Clinic $clinic)
@@ -70,6 +71,7 @@ class AdminClinicController extends Controller
         ]);
 
         if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
+        $data['timezone'] = $data['timezone'] ?? (Setting::where('key', 'timezone')->value('value') ?: config('app.timezone', 'Asia/Ashgabat'));
 
         $clinic = Clinic::create($data);
 
@@ -102,6 +104,16 @@ class AdminClinicController extends Controller
         }
 
         return redirect()->route('admin.clinics.index')->with('success', 'Klinika maglumatlary üýtgedildi.');
+    }
+
+    public function restore(Request $request, int $id)
+    {
+        $clinic = Clinic::onlyTrashed()->findOrFail($id);
+        $clinic->restore();
+        if ($request->wantsJson() || $request->is('api/*')) {
+            return response()->json(['message' => 'Klinika dikeldildi.', 'data' => $clinic]);
+        }
+        return back()->with('success', 'Klinika dikeldildi.');
     }
 
     public function destroy(Request $request, Clinic $clinic)

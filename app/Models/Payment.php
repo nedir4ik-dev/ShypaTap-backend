@@ -10,12 +10,12 @@ class Payment extends Model
 {
     protected $fillable = [
         'appointment_id', 'amount', 'currency', 'status', 'payment_method',
-        'paid_at', 'provider_reference',
+        'paid_at', 'refunded_at', 'provider_reference',
     ];
 
     protected function casts(): array
     {
-        return ['amount' => 'decimal:2', 'paid_at' => 'datetime'];
+        return ['amount' => 'decimal:2', 'paid_at' => 'datetime', 'refunded_at' => 'datetime'];
     }
 
     public function appointment(): BelongsTo

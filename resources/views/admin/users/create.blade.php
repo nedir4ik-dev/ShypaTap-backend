@@ -78,6 +78,32 @@
                     </select>
                 </div>
 
+                <div id="clinic-assignment" class="hidden space-y-2 sm:col-span-2">
+                    <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Klinikalar (birnäçe saýlap bilersiňiz)</label>
+                    <select name="clinic_ids[]" multiple size="4" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                        @foreach($clinics as $clinic)
+                        <option value="{{ $clinic->id }}" @selected(in_array($clinic->id, old('clinic_ids', [])))>{{ $clinic->name }} — {{ $clinic->city }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500">Mac-da birnäçe klinikany saýlamak üçin Command düwmesini basyp saklaň.</p>
+                </div>
+
+                <div id="doctor-fields" class="hidden grid grid-cols-1 gap-4 sm:col-span-2 sm:grid-cols-2">
+                    <div><label class="mb-1 block text-xs font-semibold">Hünär ugry</label>
+                        <select name="specialization_id" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-gray-700 dark:bg-gray-900">
+                            <option value="">Hünär saýlaň</option>
+                            @foreach($specializations as $specialization)
+                            <option value="{{ $specialization->id }}" @selected(old('specialization_id') == $specialization->id)>{{ $specialization->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div><label class="mb-1 block text-xs font-semibold">Tejribe (ýyl)</label><input type="number" min="0" max="70" name="experience_years" value="{{ old('experience_years', 0) }}" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:bg-gray-900"></div>
+                    <div><label class="mb-1 block text-xs font-semibold">Konsultasiýa bahasy</label><input type="number" min="0" step="0.01" name="consultation_fee" value="{{ old('consultation_fee', 0) }}" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:bg-gray-900"></div>
+                    <div><label class="mb-1 block text-xs font-semibold">Walýuta</label><input type="text" maxlength="3" name="currency" value="{{ old('currency', 'TMT') }}" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm uppercase dark:bg-gray-900"></div>
+                    <div class="sm:col-span-2"><label class="mb-1 block text-xs font-semibold">Bilimi</label><input name="education" value="{{ old('education') }}" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:bg-gray-900"></div>
+                    <div class="sm:col-span-2"><label class="mb-1 block text-xs font-semibold">Terjimehaly</label><textarea name="biography" rows="3" class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:bg-gray-900">{{ old('biography') }}</textarea></div>
+                </div>
+
                 <div class="space-y-1.5 sm:col-span-2">
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Açar sözi (Password)</label>
                     <input type="password" name="password" required placeholder="Iň az 8 simwol bolmaly"
@@ -105,6 +131,20 @@
 
 @push('scripts')
 <script>
+    function toggleRoleFields() {
+        const role = document.querySelector('select[name="role"]')?.value;
+        const doctorFields = document.getElementById('doctor-fields');
+        const clinicFields = document.getElementById('clinic-assignment');
+        doctorFields?.classList.toggle('hidden', role !== 'doctor');
+        clinicFields?.classList.toggle('hidden', !['doctor', 'receptionist'].includes(role));
+        doctorFields?.querySelectorAll('input,select,textarea').forEach(el => el.disabled = role !== 'doctor');
+        clinicFields?.querySelectorAll('select').forEach(el => el.disabled = !['doctor', 'receptionist'].includes(role));
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelector('select[name="role"]')?.addEventListener('change', toggleRoleFields);
+        toggleRoleFields();
+    });
+
     function previewAvatar(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;

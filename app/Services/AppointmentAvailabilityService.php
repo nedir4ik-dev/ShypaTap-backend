@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Clinic;
+use App\Support\ClinicTimezone;
 use App\Models\DoctorDayOff;
 use App\Models\DoctorSchedule;
 use Carbon\Carbon;
@@ -13,7 +14,7 @@ class AppointmentAvailabilityService
 {
     public function slots(int $doctorProfileId, int $clinicId, string $date): array
     {
-        $timezone = Clinic::whereKey($clinicId)->value('timezone') ?: config('app.timezone', 'Asia/Ashgabat');
+        $timezone = ClinicTimezone::forClinic($clinicId);
         $day = Carbon::parse($date, $timezone);
         if ($day->toDateString() < Carbon::today($timezone)->toDateString()) return [];
 
@@ -26,10 +27,10 @@ class AppointmentAvailabilityService
         if ($schedules->isEmpty() || DoctorDayOff::where('doctor_profile_id', $doctorProfileId)
             ->where('clinic_id', $clinicId)->whereDate('off_date', $day->toDateString())->exists()) return [];
 
-        $busy = Appointment::query()->where('doctor_profile_id', $doctorProfileId)
-            ->where('clinic_id', $clinicId)
-            ->whereDate('appointment_date', $day->toDateString())
-            ->whereIn('status', ['pending', 'confirmed'])->get(['start_time', 'end_time']);
+        $busy = Appointment::query()->with('clinic:id,timezone')
+            ->where('doctor_profile_id', $doctorProfileId)
+            ->whereBetween('appointment_date', [$day->copy()->subDay()->toDateString(), $day->copy()->addDay()->toDateString()])
+            ->whereIn('status', ['pending', 'confirmed'])->get();
 
         $result = [];
         foreach ($schedules as $schedule) {
@@ -42,9 +43,14 @@ class AppointmentAvailabilityService
                 $slotEnd = $cursor->copy()->addMinutes($duration);
                 $past = $day->isToday() && $cursor->lte(Carbon::now($timezone));
                 $duringBreak = $breakStart && $breakEnd && $cursor->lt($breakEnd) && $slotEnd->gt($breakStart);
-                $overlap = $busy->contains(fn ($booking) =>
-                    substr((string)$booking->start_time, 0, 8) < $slotEnd->format('H:i:s') &&
-                    substr((string)$booking->end_time, 0, 8) > $cursor->format('H:i:s'));
+                $candidateStartUtc = $cursor->copy()->utc();
+                $candidateEndUtc = $slotEnd->copy()->utc();
+                $overlap = $busy->contains(function ($booking) use ($candidateStartUtc, $candidateEndUtc) {
+                    $bookingTimezone = $booking->clinic?->timezone ?: config('app.timezone', 'Asia/Ashgabat');
+                    $bookingStart = Carbon::parse($booking->appointment_date->toDateString().' '.$booking->start_time, $bookingTimezone)->utc();
+                    $bookingEnd = Carbon::parse($booking->appointment_date->toDateString().' '.$booking->end_time, $bookingTimezone)->utc();
+                    return $bookingStart->lt($candidateEndUtc) && $bookingEnd->gt($candidateStartUtc);
+                });
                 if (!$past && !$duringBreak && !$overlap) {
                     $result[] = ['start_time'=>$cursor->format('H:i'), 'end_time'=>$slotEnd->format('H:i'), 'duration_minutes'=>$duration];
                 }
@@ -56,7 +62,7 @@ class AppointmentAvailabilityService
 
     public function assertAvailable(int $doctorProfileId, int $clinicId, string $date, string $start, string $end): DoctorSchedule
     {
-        $tz = Clinic::whereKey($clinicId)->value('timezone') ?: config('app.timezone', 'Asia/Ashgabat');
+        $tz = ClinicTimezone::forClinic($clinicId);
         $day = Carbon::parse($date, $tz);
         if ($day->toDateString() < Carbon::today($tz)->toDateString()) {
             throw ValidationException::withMessages(['appointment_date'=>['Geçen senä bron edip bolmaýar.']]);
@@ -81,10 +87,18 @@ class AppointmentAvailabilityService
         if ($day->isToday() && $requested->lte(Carbon::now($tz))) {
             throw ValidationException::withMessages(['start_time'=>['Geçen wagta bron edip bolmaýar.']]);
         }
-        $overlap = Appointment::where('doctor_profile_id',$doctorProfileId)
-            ->where('clinic_id',$clinicId)
-            ->whereDate('appointment_date',$date)->whereIn('status',['pending','confirmed'])
-            ->where('start_time','<',$end)->where('end_time','>',$start)->exists();
+        $candidateStartUtc = Carbon::parse($date.' '.$start, $tz)->utc();
+        $candidateEndUtc = Carbon::parse($date.' '.$end, $tz)->utc();
+        $busy = Appointment::query()->with('clinic:id,timezone')
+            ->where('doctor_profile_id', $doctorProfileId)
+            ->whereBetween('appointment_date', [$day->copy()->subDay()->toDateString(), $day->copy()->addDay()->toDateString()])
+            ->whereIn('status', ['pending', 'confirmed'])->get();
+        $overlap = $busy->contains(function ($booking) use ($candidateStartUtc, $candidateEndUtc) {
+            $bookingTimezone = $booking->clinic?->timezone ?: config('app.timezone', 'Asia/Ashgabat');
+            $bookingStart = Carbon::parse($booking->appointment_date->toDateString().' '.$booking->start_time, $bookingTimezone)->utc();
+            $bookingEnd = Carbon::parse($booking->appointment_date->toDateString().' '.$booking->end_time, $bookingTimezone)->utc();
+            return $bookingStart->lt($candidateEndUtc) && $bookingEnd->gt($candidateStartUtc);
+        });
         if ($overlap) throw ValidationException::withMessages(['start_time'=>['Bu wagt eýýäm bron edilen. Başga wagt saýlaň.']]);
         return $schedule;
     }

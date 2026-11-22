@@ -59,6 +59,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Clinic::class, 'clinic_staff')
             ->using(ClinicStaff::class)
+            ->withPivot('permissions')
             ->withTimestamps();
     }
 

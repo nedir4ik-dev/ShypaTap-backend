@@ -52,6 +52,7 @@ class DoctorProfile extends Model
     {
         return $this->belongsToMany(Clinic::class, 'clinic_doctors')
             ->using(ClinicDoctor::class)
+            ->withPivot('permissions')
             ->withTimestamps();
     }
 

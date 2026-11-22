@@ -222,6 +222,28 @@ class AdminDoctorController extends Controller
         return redirect()->route('admin.doctors.index')->with('success', 'Lukman maglumatlary üstünlikli üýtgedildi.');
     }
 
+    public function updateClinicPermissions(Request $request, DoctorProfile $doctor)
+    {
+        $data = $request->validate([
+            'clinic_id' => ['required', 'integer', 'exists:clinics,id'],
+            'permissions' => ['present', 'array'],
+            'permissions.*' => ['nullable', 'string', Rule::in([
+                'dashboard.view', 'appointments.view', 'appointments.manage',
+                'schedules.view', 'schedules.manage', 'reviews.view', 'payments.manage',
+            ])],
+        ]);
+
+        abort_unless($doctor->clinics()->where('clinics.id', $data['clinic_id'])->exists(), 422, 'Lukman bu klinika birikdirilmedik.');
+        $permissions = array_values(array_unique(array_filter($data['permissions'], fn ($value) => filled($value))));
+        $doctor->clinics()->syncWithoutDetaching([
+            $data['clinic_id'] => ['permissions' => $permissions],
+        ]);
+        if (! $request->expectsJson() && ! $request->is('api/*')) {
+            return back()->with('success', 'Lukmanyň klinika rugsatlary täzelendi.');
+        }
+        return response()->json(['message' => 'Lukmanyň klinika rugsatlary täzelendi.']);
+    }
+
     public function updateVerification(Request $request, DoctorProfile $doctor)
     {
         $data = $request->validate(['is_verified' => ['required', 'boolean']]);

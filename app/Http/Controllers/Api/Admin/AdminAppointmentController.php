@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -98,10 +100,30 @@ class AdminAppointmentController extends Controller
             $updates['completed_at'] = now();
         }
 
-        $appointment->update($updates);
+        $appointment = DB::transaction(function () use ($appointment, $updates, $request, $data) {
+            $locked = Appointment::whereKey($appointment->id)->lockForUpdate()->firstOrFail();
+            $locked->update($updates);
+
+            if (in_array($data['status'], ['cancelled', 'rejected'], true)) {
+                $payment = Payment::where('appointment_id', $locked->id)->lockForUpdate()->first();
+                if ($payment && $payment->status === 'pending') {
+                    $payment->update(['status' => 'cancelled']);
+                    $payment->histories()->create([
+                        'actor_user_id' => $request->user()->id,
+                        'old_status' => 'pending',
+                        'new_status' => 'cancelled',
+                        'old_payment_method' => $payment->payment_method,
+                        'new_payment_method' => $payment->payment_method,
+                        'note' => 'Bron admin tarapyndan ýatyryldy ýa-da ret edildi.',
+                    ]);
+                }
+            }
+
+            return $locked->fresh();
+        });
 
         if ($request->wantsJson() || $request->is('api/*')) {
-            return response()->json(['message' => 'Kabul ýazgysy täzelendi.', 'data' => $appointment->fresh()]);
+            return response()->json(['message' => 'Kabul ýazgysy täzelendi.', 'data' => $appointment]);
         }
 
         return back()->with('success', 'Bron ýagdaýy üstünlikli täzelendi.');
