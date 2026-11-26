@@ -5,7 +5,7 @@ $initial = mb_strtoupper(mb_substr($user?->name ?? 'A', 0, 1));
 
 <header class="flex min-h-16 w-full items-center justify-between gap-4 rounded-4xl border border-slate-200/80 bg-white/30 px-4 py-2.5 shadow-sm backdrop-blur-sm dark:border-slate-300/30 dark:bg-slate-900/30 sm:px-5">
     <div class="flex min-w-0 items-center gap-3">
-        <button type="button" onclick="toggleSidebar()" aria-label="Menýuny aç"
+        <button type="button" data-sidebar-toggle aria-controls="app-sidebar" aria-expanded="false" aria-label="Menýuny aç"
             class="flex h-9 w-9 shrink-0 items-center justify-center rounded-3xl border border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 md:hidden">
             <i class="ti ti-menu-2 text-xl leading-none"></i>
         </button>

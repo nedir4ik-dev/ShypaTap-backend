@@ -25,11 +25,12 @@ $navActive = 'bg-blue-600 text-white shadow-xl shadow-blue-600/25 ring-1 ring-wh
 @endphp
 
 <aside id="app-sidebar"
-    class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full shrink-0 flex-col justify-between rounded-r-3xl 
+    class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[calc(100vw-1rem)] -translate-x-full shrink-0 flex-col overflow-hidden rounded-r-3xl
     border border-white/60 bg-white/35 p-4 shadow-xl shadow-slate-900/10 ring-1 ring-slate-200/70 backdrop-blur-sm 
     transition-transform duration-300 dark:border-white/10 dark:bg-slate-900/35 dark:shadow-black/30 
-    dark:ring-slate-700/60 md:sticky md:top-3 md:my-3 md:ml-3 md:h-[calc(100vh-1.5rem)] md:translate-x-0 md:rounded-3xl">
-    <div class="min-h-0 flex-1">
+    dark:ring-slate-700/60 md:sticky md:top-3 md:my-3 md:ml-3 md:h-[calc(100vh-1.5rem)] md:max-w-none md:translate-x-0 md:rounded-3xl"
+    aria-hidden="true">
+    <div class="flex min-h-0 flex-1 flex-col">
         <div class="flex items-center justify-between px-2 py-1.5">
             <a href="{{ route('admin.dashboard') }}"
                 class="flex items-center gap-2 text-xl font-extrabold tracking-tight text-blue-700 no-underline dark:text-blue-400">
@@ -39,7 +40,7 @@ $navActive = 'bg-blue-600 text-white shadow-xl shadow-blue-600/25 ring-1 ring-wh
                 <span>ŞypaTap</span>
             </a>
 
-            <button type="button" onclick="toggleSidebar()" aria-label="Menýuny ýap"
+            <button type="button" data-sidebar-toggle aria-controls="app-sidebar" aria-expanded="false" aria-label="Menýuny ýap"
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200/80 bg-white/20 text-slate-600 transition hover:bg-white/80 dark:border-slate-700/70 dark:bg-slate-800/30 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden">
                 <i class="ti ti-x text-xl leading-none"></i>
             </button>
@@ -47,10 +48,10 @@ $navActive = 'bg-blue-600 text-white shadow-xl shadow-blue-600/25 ring-1 ring-wh
 
         <div class="my-3 border-t border-slate-200/70 dark:border-slate-700/60"></div>
 
-        <nav class="max-h-[calc(100vh-13rem)] space-y-1 overflow-y-auto pr-1">
+        <nav aria-label="Esasy menýu" class="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
             @foreach ($navItems as $item)
             @php($isActive = request()->routeIs($item['active']))
-            <a href="{{ route($item['route']) }}" class="{{ $navLink }} {{ $isActive ? $navActive : $navIdle }}">
+            <a href="{{ route($item['route']) }}" @if ($isActive) aria-current="page" @endif class="{{ $navLink }} {{ $isActive ? $navActive : $navIdle }}">
                 <span class="flex h-5 w-5 shrink-0 items-center justify-center">
                     <i class="ti {{ $item['icon'] }} text-lg leading-none"></i>
                 </span>
@@ -60,7 +61,7 @@ $navActive = 'bg-blue-600 text-white shadow-xl shadow-blue-600/25 ring-1 ring-wh
         </nav>
     </div>
 
-    <div class="mt-4 space-y-3">
+    <div class="mt-4 shrink-0 space-y-3">
         <div class="flex min-w-0 items-center gap-3 rounded-2xl border border-white/60 bg-white/35 px-3 py-2.5 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/55">
             @if ($user?->avatar_url)
             <img src="{{ $user->avatar_url }}" alt="Profil suraty" class="h-10 w-10 shrink-0 rounded-xl object-cover ring-1 ring-white/40">
