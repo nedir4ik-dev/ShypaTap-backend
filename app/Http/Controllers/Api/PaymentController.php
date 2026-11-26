@@ -13,12 +13,17 @@ class PaymentController extends Controller
     public function receptionistIndex(Request $request)
     {
         $user = $request->user();
-        $clinicIds = $user->role === 'admin'
+        $clinicIds = in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true)
             ? \App\Models\Clinic::query()->pluck('id')
             : $user->staffClinics()->pluck('clinics.id');
+        if ($request->filled('clinic_id')) {
+            $selectedClinic = (int)$request->query('clinic_id');
+            abort_unless($clinicIds->contains($selectedClinic),403,'Bu klinika siziň hasabyňyza birikdirilmedik.');
+            $clinicIds = collect([$selectedClinic]);
+        }
 
         $payments = Payment::query()
-            ->with(['appointment.patient:id,name,phone', 'appointment.doctor.user:id,name', 'appointment.clinic:id,name', 'histories.actor:id,name'])
+            ->with(['appointment:id,booking_code,patient_id,doctor_profile_id,clinic_id,appointment_date,start_time,end_time,status', 'appointment.patient:id,name,phone', 'appointment.doctor.user:id,name', 'appointment.clinic:id,name', 'histories.actor:id,name'])
             ->whereHas('appointment', fn ($q) => $q->whereIn('clinic_id', $clinicIds))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')->toString()))
             ->latest()
@@ -36,17 +41,12 @@ class PaymentController extends Controller
         ]);
 
         $user = $request->user();
+        abort_unless(in_array(strtolower((string)$user->role), ['admin', 'superadmin', 'super_admin'], true), 403, 'Tölegleri üýtgetmäge rugsadyňyz ýok.');
         $appointment = $payment->appointment()->with('doctor')->firstOrFail();
-        if (($data['status'] ?? null) === 'refunded') {
-            abort_unless(in_array($user->role, ['admin', 'doctor', 'receptionist'], true), 403);
-        }
-
-        if ($user->role === 'doctor') {
-            abort_unless($appointment->doctor?->user_id === $user->id, 403, 'Bu töleg siziň kabul ýazgyňyza degişli däl.');
-        } elseif ($user->role === 'receptionist') {
+        $permission = $data['status'] === 'refunded' ? 'payments.refund' : ($data['status'] === 'paid' ? 'payments.mark_paid' : 'payments.update');
+        abort_unless($user->hasPermission($permission, (int) $appointment->clinic_id), 403);
+        if (!in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true)) {
             abort_unless($user->staffClinics()->where('clinics.id', $appointment->clinic_id)->exists(), 403, 'Bu klinika üçin rugsadyňyz ýok.');
-        } elseif ($user->role !== 'admin') {
-            abort(403);
         }
 
         $updated = DB::transaction(function () use ($payment, $data, $user) {
@@ -70,6 +70,7 @@ class PaymentController extends Controller
                 'status' => $newStatus,
                 'payment_method' => $newMethod,
                 'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : $locked->paid_at,
+                'refunded_at' => $newStatus === 'refunded' ? ($locked->refunded_at ?? now()) : $locked->refunded_at,
             ]);
 
             $locked->histories()->create([
@@ -79,6 +80,8 @@ class PaymentController extends Controller
                 'old_payment_method' => $oldMethod,
                 'new_payment_method' => $newMethod,
                 'note' => $data['note'] ?? null,
+                'reason' => $data['note'] ?? null,
+                'amount' => $locked->amount,
             ]);
 
             return $locked->fresh(['histories.actor']);

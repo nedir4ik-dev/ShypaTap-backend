@@ -36,6 +36,15 @@ class UserFactory extends Factory
         ];
     }
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            if (\Illuminate\Support\Facades\Schema::hasTable('roles')) {
+                app(\App\Services\RoleAssignmentService::class)->assignDefault($user);
+            }
+        });
+    }
+
     public function admin(): static
     {
         return $this->state(fn() => ['role' => 'admin']);

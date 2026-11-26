@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['name', 'email', 'phone', 'avatar_path', 'password', 'role', 'is_active'])]
+#[Fillable(['name', 'email', 'phone', 'date_of_birth', 'avatar_path', 'password', 'role', 'is_active'])]
 #[Hidden(['password', 'remember_token', 'avatar_path'])]
 class User extends Authenticatable
 {
@@ -84,7 +84,7 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission, ?int $clinicId = null): bool
     {
-        if ($this->role === 'superadmin') return true;
+        if (in_array(strtolower((string) $this->role), ['superadmin', 'super_admin'], true)) return true;
 
         $permissionId = Permission::query()->where('name', $permission)->value('id');
         if (! $permissionId) return false;
@@ -97,6 +97,14 @@ class User extends Authenticatable
         return $this->roles()->whereHas('permissions', fn ($query) => $query->where('name', $permission))
             ->where(function ($query) use ($clinicId) { $query->whereNull('user_roles.clinic_id'); if ($clinicId) $query->orWhere('user_roles.clinic_id', $clinicId); })
             ->exists();
+    }
+
+    public function belongsToClinic(int $clinicId): bool
+    {
+        if (in_array(strtolower((string) $this->role), ['superadmin', 'super_admin'], true)) return true;
+        if ($this->staffClinics()->where('clinics.id', $clinicId)->exists()) return true;
+        if ($this->doctorProfile && $this->doctorProfile->clinics()->where('clinics.id', $clinicId)->exists()) return true;
+        return $this->roles()->wherePivot('clinic_id', $clinicId)->exists();
     }
 
     public function isAdmin(): bool

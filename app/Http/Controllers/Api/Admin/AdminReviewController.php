@@ -10,7 +10,8 @@ class AdminReviewController extends Controller
 {
     public function index(Request $request)
     {
-        $reviews = Review::with([
+        $clinicIds = in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true) ? \App\Models\Clinic::pluck('id') : $request->user()->staffClinics()->pluck('clinics.id');
+        $reviews = Review::whereHas('appointment',fn($q)=>$q->whereIn('clinic_id',$clinicIds))->with([
             'patient:id,name,email',
             'doctor.user:id,name',
             'appointment:id,booking_code,appointment_date,status',
@@ -25,6 +26,7 @@ class AdminReviewController extends Controller
 
     public function destroy(Request $request, Review $review)
     {
+        abort_unless($request->user()->belongsToClinic((int)$review->appointment?->clinic_id),403);
         $review->delete();
 
         if ($request->expectsJson() || $request->is('api/*')) {

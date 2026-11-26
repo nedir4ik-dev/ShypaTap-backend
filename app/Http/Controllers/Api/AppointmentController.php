@@ -31,7 +31,7 @@ class AppointmentController extends Controller
         $v=$request->validate([
             'doctor_profile_id'=>'required|integer|exists:doctor_profiles,id',
             'clinic_id'=>'required|integer|exists:clinics,id',
-            'appointment_date'=>'required|date_format:Y-m-d|after_or_equal:today',
+            'appointment_date'=>'required|date_format:Y-m-d',
             'start_time'=>'required|date_format:H:i',
             'reason'=>'nullable|string|max:1000','patient_phone'=>'required|string|max:30',
             'notes'=>'nullable|string|max:2000',
@@ -93,6 +93,8 @@ class AppointmentController extends Controller
                     'old_payment_method' => $payment->payment_method,
                     'new_payment_method' => $payment->payment_method,
                     'note' => 'Näsag bronuny ýatyrdy.',
+                    'reason' => 'Näsag bronuny ýatyrdy.',
+                    'amount' => $payment->amount,
                 ]);
             }
             $doctor=$a->doctor()->with('user')->first();
@@ -127,6 +129,19 @@ class AppointmentController extends Controller
         ]);
 
         return response()->json(['message' => 'Pikiriňiz kabul edildi.', 'data' => $review], 201);
+    }
+
+
+    public function updateReview(Request $request, int $id): JsonResponse
+    {
+        $data = $request->validate([
+            'rating' => ['sometimes', 'required', 'numeric', 'between:1,5', 'decimal:0,1'],
+            'comment' => ['sometimes', 'nullable', 'string', 'max:1000'],
+        ]);
+        $review = Review::whereKey($id)->where('patient_id', $request->user()->id)->firstOrFail();
+        abort_unless($review->appointment()->where('status','completed')->exists(), 422, 'Diňe tamamlanan kabul üçin baha üýtgedip bolýar.');
+        $review->update($data);
+        return response()->json(['message'=>'Bahalandyrma täzelendi.','data'=>$review->fresh()]);
     }
 
     public function deleteReview(Request $request, int $id): JsonResponse
@@ -198,31 +213,16 @@ class AppointmentController extends Controller
 
     public function updateStatus(Request $request, int $id): JsonResponse
     {
-        $v=$request->validate(['status'=>'required|in:confirmed,rejected,completed,no_show']);
+        $v=$request->validate(['status'=>'required|in:checked_in,completed,no_show']);
         $profile=$request->user()->doctorProfile;
         abort_unless($profile,404,'Lukman profili tapylmady.');
         $a=DB::transaction(function() use($profile,$id,$v) {
             $a=Appointment::where('id',$id)->where('doctor_profile_id',$profile->id)->lockForUpdate()->firstOrFail();
-            $allowed=['pending'=>['confirmed','rejected'],'confirmed'=>['completed','no_show']];
+            $allowed=['confirmed'=>['checked_in','no_show'],'checked_in'=>['completed']];
             if(!in_array($v['status'],$allowed[$a->status]??[],true)) abort(422,'Bu status üýtgemesine rugsat berilmeýär.');
             $updates=['status'=>$v['status']];
-            if($v['status']==='confirmed') $updates['confirmed_at']=now();
             if($v['status']==='completed') $updates['completed_at']=now();
             $a->update($updates);
-            if (in_array($v['status'], ['rejected'], true)) {
-                $payment = Payment::where('appointment_id', $a->id)->lockForUpdate()->first();
-                if ($payment && $payment->status === 'pending') {
-                    $payment->update(['status' => 'cancelled']);
-                    $payment->histories()->create([
-                        'actor_user_id' => $profile->user_id,
-                        'old_status' => 'pending',
-                        'new_status' => 'cancelled',
-                        'old_payment_method' => $payment->payment_method,
-                        'new_payment_method' => $payment->payment_method,
-                        'note' => 'Bron lukman tarapyndan ret edildi.',
-                    ]);
-                }
-            }
             $this->notify($a->patient_id,'Kabul ýazgysy täzelendi','Kabul ýazgyňyzyň ýagdaýy: '.$v['status'],'appointment_'.$v['status'],['appointment_id'=>$a->id]);
             return $a;
         });
@@ -231,8 +231,8 @@ class AppointmentController extends Controller
 
     public function storeForPatient(Request $request): JsonResponse
     {
-        $v=$request->validate(['patient_id'=>'required|exists:users,id','doctor_profile_id'=>'required|exists:doctor_profiles,id','clinic_id'=>'required|exists:clinics,id','appointment_date'=>'required|date_format:Y-m-d|after_or_equal:today','start_time'=>'required|date_format:H:i','patient_phone'=>'required|string|max:30','reason'=>'nullable|string|max:1000','notes'=>'nullable|string|max:2000']);
-        $clinicAllowed=$request->user()->staffClinics()->where('clinics.id',$v['clinic_id'])->exists() || $request->user()->role==='admin';
+        $v=$request->validate(['patient_id'=>'required|exists:users,id','doctor_profile_id'=>'required|exists:doctor_profiles,id','clinic_id'=>'required|exists:clinics,id','appointment_date'=>'required|date_format:Y-m-d','start_time'=>'required|date_format:H:i','patient_phone'=>'required|string|max:30','reason'=>'nullable|string|max:1000']);
+        $clinicAllowed=$request->user()->belongsToClinic((int)$v['clinic_id']);
         abort_unless($clinicAllowed,403,'Bu klinika üçin rugsadyňyz ýok.');
         $patient=\App\Models\User::where('id',$v['patient_id'])->where('role','patient')->firstOrFail();
         $a=DB::transaction(function() use($v,$request,$patient) {
@@ -243,7 +243,7 @@ class AppointmentController extends Controller
             if(!$schedule) abort(422,'Lukman bu gün kabul etmeýär.');
             $start=Carbon::createFromFormat('H:i',$v['start_time']); $end=$start->copy()->addMinutes($schedule->slot_duration_minutes);
             $this->availability->assertAvailable($v['doctor_profile_id'],$v['clinic_id'],$v['appointment_date'],$start->format('H:i:s'),$end->format('H:i:s'));
-            $a=Appointment::create(['booking_code'=>'ST-'.date('Y').'-'.strtoupper(\Illuminate\Support\Str::random(8)),'patient_id'=>$patient->id,'doctor_profile_id'=>$v['doctor_profile_id'],'clinic_id'=>$v['clinic_id'],'created_by_user_id'=>$request->user()->id,'appointment_date'=>$v['appointment_date'],'start_time'=>$start->format('H:i:s'),'end_time'=>$end->format('H:i:s'),'duration_minutes'=>$schedule->slot_duration_minutes,'status'=>'pending','patient_phone'=>$v['patient_phone'],'reason'=>$v['reason']??null,'notes'=>$v['notes']??null]);
+            $a=Appointment::create(['booking_code'=>'ST-'.date('Y').'-'.strtoupper(\Illuminate\Support\Str::random(8)),'patient_id'=>$patient->id,'doctor_profile_id'=>$v['doctor_profile_id'],'clinic_id'=>$v['clinic_id'],'created_by_user_id'=>$request->user()->id,'appointment_date'=>$v['appointment_date'],'start_time'=>$start->format('H:i:s'),'end_time'=>$end->format('H:i:s'),'duration_minutes'=>$schedule->slot_duration_minutes,'status'=>'pending','patient_phone'=>$v['patient_phone'],'reason'=>$v['reason']??null,'notes'=>null]);
             $this->notify($patient->id,'Kabul ýazgysy döredildi','Registratura tarapyndan kabul ýazgysy döredildi.','appointment_created',['appointment_id'=>$a->id]);
             $doctor=DoctorProfile::findOrFail($v['doctor_profile_id']);
             Payment::create(['appointment_id'=>$a->id,'amount'=>$doctor->consultation_fee,'currency'=>$doctor->currency?:'TMT','status'=>'pending','payment_method'=>'cash']);

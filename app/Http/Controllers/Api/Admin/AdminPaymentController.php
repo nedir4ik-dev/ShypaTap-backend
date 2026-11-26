@@ -12,7 +12,8 @@ class AdminPaymentController extends Controller
 {
     public function index(Request $request)
     {
-        $payments = Payment::with([
+        $clinicIds = in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true) ? \App\Models\Clinic::pluck('id') : $request->user()->staffClinics()->pluck('clinics.id');
+        $payments = Payment::whereHas('appointment',fn($q)=>$q->whereIn('clinic_id',$clinicIds))->with([
             'appointment.patient:id,name,email',
             'appointment.doctor.user:id,name',
             'appointment.clinic:id,name',
@@ -28,6 +29,7 @@ class AdminPaymentController extends Controller
 
     public function show(Request $request, Payment $payment)
     {
+        abort_unless($request->user()->belongsToClinic((int)$payment->appointment?->clinic_id),403);
         $payment->load(['appointment.patient', 'appointment.doctor.user', 'appointment.clinic', 'histories.actor']);
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json(['data' => $payment]);
@@ -38,6 +40,7 @@ class AdminPaymentController extends Controller
 
     public function update(Request $request, Payment $payment)
     {
+        abort_unless($request->user()->belongsToClinic((int)$payment->appointment?->clinic_id),403);
         $data = $request->validate([
             'status' => ['required', Rule::in(['pending', 'paid', 'refunded', 'cancelled'])],
             'payment_method' => ['sometimes', Rule::in(['cash'])],
@@ -51,6 +54,8 @@ class AdminPaymentController extends Controller
             $newStatus = $data['status'];
             $newMethod = $data['payment_method'] ?? $oldMethod;
 
+            if ($newStatus === 'refunded') abort_unless($request->user()->hasPermission('payments.refund', (int)$locked->appointment?->clinic_id),403);
+            if ($newStatus === 'paid') abort_unless($request->user()->hasPermission('payments.mark_paid', (int)$locked->appointment?->clinic_id),403);
             $allowedTransitions = [
                 'pending' => ['paid', 'cancelled'],
                 'paid' => ['refunded'],
@@ -64,7 +69,8 @@ class AdminPaymentController extends Controller
             $locked->update([
                 'status' => $newStatus,
                 'payment_method' => $newMethod,
-                'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : null,
+                'paid_at' => $newStatus === 'paid' ? ($locked->paid_at ?? now()) : $locked->paid_at,
+                'refunded_at' => $newStatus === 'refunded' ? ($locked->refunded_at ?? now()) : $locked->refunded_at,
             ]);
 
             $locked->histories()->create([
@@ -74,6 +80,8 @@ class AdminPaymentController extends Controller
                 'old_payment_method' => $oldMethod,
                 'new_payment_method' => $newMethod,
                 'note' => $data['note'] ?? null,
+                'reason' => $data['note'] ?? null,
+                'amount' => $locked->amount,
             ]);
         });
 

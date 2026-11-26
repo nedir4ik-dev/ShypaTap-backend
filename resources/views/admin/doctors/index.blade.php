@@ -59,8 +59,8 @@
                             </span>
                         </td>
                         <td class="p-4 text-right space-x-3">
-                            <a href="{{ route('admin.doctors.show', $doctor->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">Gör</a>
-                            <a href="{{ route('admin.doctors.edit', $doctor->id) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Üýtget</a>
+                            <a href="{{ route('admin.doctors.show', $doctor->id) }}" class="text-blue-600 dark:text-blue-400 font-medium"><i class="ti ti-eye text-lg"></i></a>
+                            <a href="{{ route('admin.doctors.edit', $doctor->id) }}" class="text-indigo-600 dark:text-indigo-400 font-medium"><i class="ti ti-edit text-lg"></i></a>
                         </td>
                     </tr>
                     @empty

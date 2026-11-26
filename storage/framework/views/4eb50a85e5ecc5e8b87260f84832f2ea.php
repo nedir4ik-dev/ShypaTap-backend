@@ -53,9 +53,15 @@
                             </span>
                         </td>
                         <td class="py-3.5 px-4 text-right">
-                            <a href="<?php echo e(route('admin.appointments.show', $app->id)); ?>" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 text-xs font-semibold transition">
-                                <i class="ti ti-eye"></i> Gör
-                            </a>
+                            <div class="inline-flex items-center gap-2">
+                                <a href="<?php echo e(route('admin.appointments.show', $app->id)); ?>" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 text-xs font-semibold transition">
+                                    <i class="ti ti-eye"></i> Gör
+                                </a>
+                                <form method="POST" action="<?php echo e(route('admin.appointments.destroy', $app->id)); ?>" onsubmit="return confirm('Bu bron ýazgysyny Trash bölümine geçirmek isleýärsiňizmi?')">
+                                    <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
+                                    <button class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 dark:bg-red-500/10 dark:text-red-400">Trash</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>

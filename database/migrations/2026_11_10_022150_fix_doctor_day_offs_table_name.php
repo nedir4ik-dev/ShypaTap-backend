@@ -37,7 +37,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Maglumatlary ýitirmezlik üçin bu düzediş migration-y
-        // tablisany pozmaýar we öňki adyna gaýtarmaýar.
+        // This migration is irreversible because it may involve renaming tables and losing data.
     }
 };

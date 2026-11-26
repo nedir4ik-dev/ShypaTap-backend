@@ -38,6 +38,7 @@ class Appointment extends Model
     public const STATUSES = [
         'pending',
         'confirmed',
+        'checked_in',
         'cancelled',
         'rejected',
         'completed',
@@ -57,17 +58,17 @@ class Appointment extends Model
 
     public function patient(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'patient_id');
+        return $this->belongsTo(User::class, 'patient_id')->withTrashed();
     }
 
     public function doctor(): BelongsTo
     {
-        return $this->belongsTo(DoctorProfile::class, 'doctor_profile_id');
+        return $this->belongsTo(DoctorProfile::class, 'doctor_profile_id')->withTrashed();
     }
 
     public function clinic(): BelongsTo
     {
-        return $this->belongsTo(Clinic::class);
+        return $this->belongsTo(Clinic::class)->withTrashed();
     }
 
     public function createdBy(): BelongsTo

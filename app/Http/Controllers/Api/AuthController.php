@@ -5,18 +5,20 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AvatarService;
+use App\Services\RoleAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(Request $request, RoleAssignmentService $roles)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:30'],
+            'date_of_birth' => ['nullable', 'date', 'before:today'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -26,6 +28,7 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
+        $roles->assignDefault($user);
         $token = $user->createToken('shypatap-token')->plainTextToken;
 
         return response()->json([
@@ -79,6 +82,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:150'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'date_of_birth' => ['sometimes', 'nullable', 'date', 'before:today'],
             'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
         ]);
 

@@ -8,9 +8,14 @@ $navItems = [
 ['route' => 'admin.clinics.index', 'active' => 'admin.clinics*', 'icon' => 'ti-building-hospital', 'label' => 'Klinikalar'],
 ['route' => 'admin.specializations.index', 'active' => 'admin.specializations*', 'icon' => 'ti-award', 'label' => 'Hünärler'],
 ['route' => 'admin.appointments.index', 'active' => 'admin.appointments*', 'icon' => 'ti-calendar-event', 'label' => 'Bron edilmeler'],
+['route' => 'admin.patients.index', 'active' => 'admin.patients*', 'icon' => 'ti-user-heart', 'label' => 'Näsaglar'],
 ['route' => 'admin.users.index', 'active' => 'admin.users*', 'icon' => 'ti-users', 'label' => 'Ulanyjylar'],
 ['route' => 'admin.payments.index', 'active' => 'admin.payments*', 'icon' => 'ti-cash', 'label' => 'Tölegler'],
+['route' => 'admin.reports.index', 'active' => 'admin.reports*', 'icon' => 'ti-chart-bar', 'label' => 'Hasabatlar'],
+['route' => 'admin.roles.index', 'active' => 'admin.roles*', 'icon' => 'ti-shield-lock', 'label' => 'Rollar we rugsatlar'],
+['route' => 'admin.trash.index', 'active' => 'admin.trash*', 'icon' => 'ti-trash', 'label' => 'Trash'],
 ['route' => 'admin.reviews.index', 'active' => 'admin.reviews*', 'icon' => 'ti-star', 'label' => 'Bahalandyrmalar'],
+['route' => 'admin.profile.edit', 'active' => 'admin.profile*', 'icon' => 'ti-user-cog', 'label' => 'Profil sazlamalary'],
 ['route' => 'admin.settings.edit', 'active' => 'admin.settings*', 'icon' => 'ti-settings', 'label' => 'Sazlamalar'],
 ];
 

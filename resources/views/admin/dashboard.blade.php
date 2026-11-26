@@ -6,6 +6,22 @@
 
 @section('content')
 <div class="space-y-6">
+    <form method="GET" class="grid gap-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 sm:grid-cols-2 lg:grid-cols-5">
+        <label class="text-xs font-semibold">Klinika<select name="clinic_id" class="mt-1 w-full rounded-xl border p-2.5 dark:bg-gray-900">
+                <option value="">Ählisi</option>@foreach($clinics as $clinic)<option value="{{$clinic->id}}" @selected(($filters['clinic_id']??'')==$clinic->id)>{{$clinic->name}}</option>@endforeach
+            </select></label>
+        <label class="text-xs font-semibold">Lukman<select name="doctor_profile_id" class="mt-1 w-full rounded-xl border p-2.5 dark:bg-gray-900">
+                <option value="">Ählisi</option>@foreach($doctors as $doctor)<option value="{{$doctor->id}}" @selected(($filters['doctor_profile_id']??'')==$doctor->id)>{{$doctor->user?->name}}</option>@endforeach
+            </select></label>
+        <label class="text-xs font-semibold">Aý<input type="month" name="month" value="{{$filters['month']??''}}" class="mt-1 w-full rounded-xl border p-2.5 dark:bg-gray-900"></label>
+        <label class="text-xs font-semibold">Kabul ýagdaýy<select name="status" class="mt-1 w-full rounded-xl border p-2.5 dark:bg-gray-900">
+                <option value="">Ählisi</option>@foreach(['pending'=>'Garaşylýar','confirmed'=>'Tassyklanan','checked_in'=>'Geldi','completed'=>'Tamamlanan','cancelled'=>'Ýatyrylan','no_show'=>'Gelmedi'] as $value=>$label)<option value="{{$value}}" @selected(($filters['status']??'')===$value)>{{$label}}</option>@endforeach
+            </select></label>
+        <label class="text-xs font-semibold">Töleg ýagdaýy<select name="payment_status" class="mt-1 w-full rounded-xl border p-2.5 dark:bg-gray-900">
+                <option value="">Ählisi</option>@foreach(['pending'=>'Garaşylýar','paid'=>'Tölenen','refunded'=>'Yzyna gaýtarylan','cancelled'=>'Ýatyrylan'] as $value=>$label)<option value="{{$value}}" @selected(($filters['payment_status']??'')===$value)>{{$label}}</option>@endforeach
+            </select></label>
+        <div class="sm:col-span-2 lg:col-span-5 flex gap-2"><button class="rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white">Süzgüçleri ulan</button><a href="{{route('admin.dashboard')}}" class="rounded-xl border px-5 py-2 text-sm">Arassala</a></div>
+    </form>
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
@@ -48,7 +64,34 @@
             </div>
         </div>
 
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            @foreach([['Jemi ulanyjy',$totalUsers??0,'ti-users'],['Jemi kabul',$totalAppointments??0,'ti-calendar'],['Tamamlanan',$completedAppointments??0,'ti-check'],['Ýatyrylan',$cancelledAppointments??0,'ti-calendar-x'],['Garaşýan tölegler',$pendingPayments??0,'ti-wallet'],['Tölenen tölegler',$paidPayments??0,'ti-cash'],['Girdeji',$revenue??0,'ti-currency-manat']] as $metric)
+            <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{{$metric[0]}}</p>
+                <div class="mt-2 flex items-center justify-between"><strong class="text-2xl">{{$metric[1]}}</strong><i class="ti {{$metric[2]}} text-2xl text-emerald-600"></i></div>
+            </div>
+            @endforeach
+        </div>
     </div>
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <h2 class="mb-3 font-bold">Aýlyk girdeji</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-left text-gray-500">
+                        <th class="p-2">Aý</th>
+                        <th class="p-2">Girdeji</th>
+                    </tr>
+                </thead>
+                <tbody>@forelse($revenueByMonth as $month)<tr class="border-b dark:border-gray-700">
+                        <td class="p-2">{{$month->month}}</td>
+                        <td class="p-2 font-semibold">{{number_format($month->total,2)}} TMT</td>
+                    </tr>@empty<tr>
+                        <td colspan="2" class="p-4 text-center text-gray-500">Girdeji maglumatlary ýok.</td>
+                    </tr>@endforelse</tbody>
+            </table>
+        </div>
+    </section>
 
 </div>
 @endsection

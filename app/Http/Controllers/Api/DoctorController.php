@@ -38,6 +38,8 @@ class DoctorController extends Controller
     public function slots(Request $request, int $id): JsonResponse
     {
         $data = $request->validate(['date' => 'required|date_format:Y-m-d', 'clinic_id' => 'required|integer|exists:clinics,id']);
+        abort_unless(\App\Models\Clinic::whereKey($data['clinic_id'])->where('is_active',true)->exists(),404);
+        abort_unless(DoctorProfile::whereKey($id)->where('is_verified',true)->whereHas('clinics',fn($q)=>$q->whereKey($data['clinic_id'])->where('is_active',true))->exists(),404);
         return response()->json([
             'doctor_profile_id' => $id,
             'date' => $data['date'],

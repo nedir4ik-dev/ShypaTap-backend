@@ -70,7 +70,7 @@
 
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Ulgamdaky Roly</label>
-                    <select name="role" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select id="user-role" name="role" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                         <option value="patient" {{ old('role') == 'patient' ? 'selected' : '' }}>Näsag (Patient)</option>
                         <option value="doctor" {{ old('role') == 'doctor' ? 'selected' : '' }}>Lukman (Doctor)</option>
                         <option value="receptionist" {{ old('role') == 'receptionist' ? 'selected' : '' }}>Registratura</option>
@@ -78,10 +78,39 @@
                     </select>
                 </div>
 
+                <div id="doctor-fields" class="hidden sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
+                    <div class="sm:col-span-2 font-bold text-emerald-800 dark:text-emerald-300">Lukman profili</div>
+                    <label class="text-xs font-semibold">Hünär ugry
+                        <select name="specialization_id" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900"><option value="">Hünär saýlaň</option>@foreach($specializations as $specialization)<option value="{{ $specialization->id }}" {{ old('specialization_id') == $specialization->id ? 'selected' : '' }}>{{ $specialization->name }}</option>@endforeach</select>
+                    </label>
+                    <label class="text-xs font-semibold">Tejribe (ýyl)
+                        <input type="number" name="experience_years" min="0" max="70" value="{{ old('experience_years',0) }}" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900" />
+                    </label>
+                    <label class="text-xs font-semibold">Maslahat bahasy
+                        <input type="number" name="consultation_fee" min="0" step="0.01" value="{{ old('consultation_fee',0) }}" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900" />
+                    </label>
+                    <div class="text-xs font-semibold">Klinika bellenmesi
+                        <div class="mt-2 grid grid-cols-2 gap-2">@foreach($clinics as $clinic)<label class="flex items-center gap-2 font-normal"><input type="checkbox" name="clinic_ids[]" value="{{ $clinic->id }}" {{ is_array(old('clinic_ids')) && in_array($clinic->id,old('clinic_ids')) ? 'checked' : '' }} />{{ $clinic->name }}</label>@endforeach</div>
+                    </div>
+                    <label class="text-xs font-semibold sm:col-span-2">Bilimi<textarea name="education" rows="2" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900">{{ old('education') }}</textarea></label>
+                    <label class="text-xs font-semibold sm:col-span-2">Biografiýa<textarea name="biography" rows="2" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900">{{ old('biography') }}</textarea></label>
+                </div>
+
                 <div class="space-y-1.5 sm:col-span-2">
                     <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300">Açar sözi (Password)</label>
                     <input type="password" name="password" required placeholder="Iň az 8 simwol bolmaly"
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+
+                <div id="receptionist-fields" class="hidden sm:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
+                    <div class="mb-3 font-bold text-emerald-800 dark:text-emerald-300">Registratura üçin klinikalar</div>
+                    <div class="grid grid-cols-2 gap-3">@foreach($clinics as $clinic)<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="clinic_ids[]" value="{{ $clinic->id }}" />{{ $clinic->name }}</label>@endforeach</div>
+                </div>
+
+                <div id="admin-fields" class="hidden sm:col-span-2 rounded-2xl border border-blue-200 bg-blue-50/50 p-5 dark:border-blue-900 dark:bg-blue-950/20">
+                    <div class="mb-3 font-bold text-blue-800 dark:text-blue-300">Admin üçin rugsatly klinikalar</div>
+                    <div class="grid grid-cols-2 gap-3">@foreach($clinics as $clinic)<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="clinic_ids[]" value="{{ $clinic->id }}" />{{ $clinic->name }}</label>@endforeach</div>
+                    <p class="mt-2 text-xs text-slate-500">Admin diňe bellenen klinikalaryň maglumatlaryna girip biler.</p>
                 </div>
 
                 <div class="sm:col-span-2 flex items-center gap-3 pt-2">
@@ -105,6 +134,22 @@
 
 @push('scripts')
 <script>
+    function toggleDoctorFields() {
+        const role = document.getElementById('user-role');
+        const fields = document.getElementById('doctor-fields');
+        const receptionistFields = document.getElementById('receptionist-fields');
+        const adminFields = document.getElementById('admin-fields');
+        if (fields) fields.classList.toggle('hidden', role?.value !== 'doctor');
+        if (receptionistFields) receptionistFields.classList.toggle('hidden', role?.value !== 'receptionist');
+        if (adminFields) adminFields.classList.toggle('hidden', role?.value !== 'admin');
+        [fields, receptionistFields, adminFields].forEach((section) => section?.querySelectorAll('input,select,textarea').forEach((el) => { el.disabled = section.classList.contains('hidden'); }));
+        const spec = fields?.querySelector('[name="specialization_id"]');
+        if (spec) spec.required = role?.value === 'doctor';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('user-role')?.addEventListener('change', toggleDoctorFields);
+        toggleDoctorFields();
+    });
     function previewAvatar(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;

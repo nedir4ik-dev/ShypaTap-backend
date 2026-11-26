@@ -20,7 +20,7 @@ class RoleMiddleware
             return response()->json(['message' => 'Hasabyňyz işjeň däl.'], 403);
         }
 
-        if (!in_array($user->role, $roles, true)) {
+        if (!in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true) && !in_array($user->role, $roles, true)) {
             return response()->json(['message' => 'Bu amaly ýerine ýetirmäge rugsadyňyz ýok.'], 403);
         }
 

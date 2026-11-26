@@ -106,19 +106,10 @@
             </div>
         </div>
 
-        <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Roly / Derejesi</label>
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <i class="ti ti-shield text-lg"></i>
-                </span>
-                <select name="role" required
-                    class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm appearance-none">
-                    <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="doctor" {{ old('role', $user->role) == 'doctor' ? 'selected' : '' }}>Lukman</option>
-                    <option value="patient" {{ old('role', $user->role) == 'patient' ? 'selected' : '' }}>Näsag</option>
-                </select>
-            </div>
+        <div class="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Esasy rol</p>
+            <p class="mt-1 font-bold">{{ ucfirst($user->role) }}</p>
+            <p class="mt-1 text-xs text-slate-500">Roly we klinika çägini aşakdaky RBAC bölüminden belläň.</p>
         </div>
 
         <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
@@ -131,6 +122,26 @@
             </button>
         </div>
     </form>
+
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <h2 class="mb-3 text-lg font-bold">RBAC — ulanyjy roluny bellemek</h2>
+        <p class="mb-4 text-xs text-slate-500">Admin diňe öz rugsatlarynyň çägindäki rollary we özüne bellenen klinikalary saýlap biler.</p>
+        <form method="POST" action="{{ route('admin.users.roles',$user->id) }}" class="grid gap-4 sm:grid-cols-2">@csrf @method('PUT')
+            <label class="text-sm font-semibold">Rol<select name="role_id" required class="mt-1 w-full rounded-xl border p-3 dark:bg-slate-900">@foreach($roles as $role)<option value="{{ $role->id }}" @selected($user->roles->contains('id',$role->id))>{{ $role->name }}</option>@endforeach</select></label>
+            <label class="text-sm font-semibold">Klinika çägi<select name="clinic_id" class="mt-1 w-full rounded-xl border p-3 dark:bg-slate-900">@if(in_array(strtolower((string)auth()->user()->role), ['superadmin','super_admin']))<option value="">Global (SuperAdmin)</option>@else<option value="" disabled selected>Klinika saýlaň</option>@endif @foreach($clinics as $clinic)<option value="{{ $clinic->id }}">{{ $clinic->name }}</option>@endforeach</select></label>
+            <div class="sm:col-span-2"><button class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white">Roly belle</button></div>
+        </form>
+        <div class="mt-4 flex flex-wrap gap-2">@foreach($user->roles as $role)<span class="rounded-lg bg-slate-100 px-3 py-1 text-xs dark:bg-slate-700">{{ $role->name }} · {{ $role->pivot->clinic_id ? 'Klinika #'.$role->pivot->clinic_id : 'Global' }}</span>@endforeach</div>
+        <div class="my-5 border-t border-slate-200 dark:border-slate-700"></div>
+        <h3 class="mb-3 font-bold">Şahsy rugsat üýtgetmeleri (Allow / Deny)</h3>
+        <form method="POST" action="{{ route('admin.users.overrides',$user->id) }}" class="grid gap-3 sm:grid-cols-4">@csrf @method('PUT')
+            <select name="permission_id" required class="rounded-xl border p-2 text-sm dark:bg-slate-900">@foreach($permissions as $permission)<option value="{{ $permission->id }}">{{ $permission->name }}</option>@endforeach</select>
+            <select name="effect" required class="rounded-xl border p-2 text-sm dark:bg-slate-900"><option value="allow">Allow</option><option value="deny">Deny</option></select>
+            <select name="clinic_id" class="rounded-xl border p-2 text-sm dark:bg-slate-900">@if(in_array(strtolower((string)auth()->user()->role), ['superadmin','super_admin']))<option value="">Global</option>@else<option value="" disabled selected>Klinika</option>@endif @foreach($clinics as $clinic)<option value="{{ $clinic->id }}">{{ $clinic->name }}</option>@endforeach</select>
+            <button class="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white">Rugsat goş</button>
+        </form>
+        <div class="mt-3 flex flex-wrap gap-2">@foreach($user->permissionOverrides as $override)<span class="rounded-lg px-3 py-1 text-xs {{ $override->effect==='deny'?'bg-red-100 text-red-700':'bg-emerald-100 text-emerald-700' }}">{{ $override->permission?->name }}: {{ strtoupper($override->effect) }} · {{ $override->clinic_id ? 'Klinika #'.$override->clinic_id : 'Global' }}</span>@endforeach</div>
+    </section>
 </div>
 
 @push('scripts')

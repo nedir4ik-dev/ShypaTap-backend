@@ -9,7 +9,7 @@ class PaymentHistory extends Model
 {
     protected $fillable = [
         'payment_id', 'actor_user_id', 'old_status', 'new_status',
-        'old_payment_method', 'new_payment_method', 'note',
+        'old_payment_method', 'new_payment_method', 'note', 'reason', 'amount',
     ];
 
     public function payment(): BelongsTo

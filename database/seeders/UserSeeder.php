@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Services\RoleAssignmentService;
 
 class UserSeeder extends Seeder
 {
@@ -24,7 +25,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $data) {
-            User::updateOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 $data + [
                     'password' => Hash::make('password'),
@@ -32,6 +33,7 @@ class UserSeeder extends Seeder
                     'email_verified_at' => now(),
                 ]
             );
+            app(RoleAssignmentService::class)->assignDefault($user);
         }
         // User::factory()->patient()->count(10)->create();
     }

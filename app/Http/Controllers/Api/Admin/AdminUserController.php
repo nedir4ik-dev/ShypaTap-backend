@@ -4,10 +4,16 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\AvatarService;
+use App\Services\RoleAssignmentService;
 use App\Models\User;
+use App\Models\DoctorProfile;
+use App\Models\Specialization;
+use App\Models\Clinic;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class AdminUserController extends Controller
 {
@@ -24,6 +30,14 @@ class AdminUserController extends Controller
             'created_at',
         ]);
 
+        if (!in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true)) {
+            $clinicIds = $request->user()->staffClinics()->pluck('clinics.id');
+            $query->where(function ($q) use ($clinicIds) {
+                $q->whereHas('staffClinics',fn($x)=>$x->whereIn('clinics.id',$clinicIds))
+                  ->orWhereHas('doctorProfile.clinics',fn($x)=>$x->whereIn('clinics.id',$clinicIds))
+                  ->orWhereHas('patientAppointments',fn($x)=>$x->whereIn('clinic_id',$clinicIds));
+            });
+        }
         if ($request->filled('role')) {
             $query->where('role', $request->string('role')->toString());
         }
@@ -46,17 +60,24 @@ class AdminUserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
+    public function patients(Request $request)
+    {
+        $request->merge(['role' => 'patient']);
+        return $this->index($request);
+    }
+
     public function create(Request $request)
     {
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'API üçin bu ýol ýok.']);
         }
 
-        return view('admin.users.create');
+        return view('admin.users.create', ['specializations' => Specialization::orderBy('name')->get(), 'clinics' => in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true) ? Clinic::orderBy('name')->get() : Clinic::whereIn('id',$request->user()->staffClinics()->pluck('clinics.id'))->orderBy('name')->get()]);
     }
 
     public function show(Request $request, User $user)
     {
+        $this->assertUserScope($request, $user);
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json([
                 'data' => $user->only(['id', 'name', 'email', 'phone', 'avatar_url', 'role', 'is_active', 'created_at']),
@@ -68,14 +89,20 @@ class AdminUserController extends Controller
 
     public function edit(Request $request, User $user)
     {
+        $this->assertUserScope($request, $user);
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['data' => $user]);
         }
-
-        return view('admin.users.edit', compact('user'));
+        $roles = \App\Models\Role::orderBy('name')->get();
+        $permissions = \App\Models\Permission::orderBy('group')->orderBy('name')->get();
+        $user->load('permissionOverrides.permission');
+        $clinicIds = in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true) ? Clinic::pluck('id') : $request->user()->staffClinics()->pluck('clinics.id');
+        $clinics = Clinic::whereIn('id',$clinicIds)->orderBy('name')->get();
+        $user->load('roles');
+        return view('admin.users.edit', compact('user','roles','clinics','permissions'));
     }
 
-    public function store(Request $request, AvatarService $avatars)
+    public function store(Request $request, AvatarService $avatars, RoleAssignmentService $roles)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -85,14 +112,39 @@ class AdminUserController extends Controller
             'role' => ['required', Rule::in(['patient', 'doctor', 'receptionist', 'admin'])],
             'is_active' => ['sometimes', 'boolean'],
             'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:3072'],
+            'specialization_id' => ['required_if:role,doctor','nullable','integer','exists:specializations,id'],
+            'experience_years' => ['nullable','integer','min:0','max:70'],
+            'consultation_fee' => ['nullable','numeric','min:0'],
+            'clinic_ids' => ['nullable','array'], 'clinic_ids.*' => ['integer','distinct','exists:clinics,id'],
+            'education' => ['nullable','string'], 'biography' => ['nullable','string'],
         ]);
 
+        $allowedClinicIds = in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true) ? Clinic::pluck('id') : $request->user()->staffClinics()->pluck('clinics.id');
+        foreach (($data['clinic_ids'] ?? []) as $clinicId) abort_unless($allowedClinicIds->contains((int)$clinicId),403);
+        if (in_array($data['role'], ['doctor','receptionist','admin'], true)) abort_if(empty($data['clinic_ids']),422,'Bu rol üçin azyndan bir klinika saýlaň.');
         $avatarFile = $request->file('avatar');
         unset($data['avatar']);
-        $data['is_active'] = $request->has('is_active');
+        $data['is_active'] = $request->boolean('is_active');
         $data['password'] = Hash::make($data['password']);
-
-        $user = User::create($data);
+        $doctorFields = $data;
+        $user = DB::transaction(function () use ($data, $doctorFields, $roles) {
+            $user = User::create(array_intersect_key($data, array_flip(['name','email','phone','password','role','is_active'])));
+            $roles->assignDefault($user);
+            if (in_array($user->role, ['receptionist','admin'], true)) {
+                $user->staffClinics()->sync($doctorFields['clinic_ids'] ?? []);
+            }
+            if ($user->role === 'doctor') {
+                $doctor = DoctorProfile::create([
+                    'user_id'=>$user->id, 'specialization_id'=>$doctorFields['specialization_id'],
+                    'experience_years'=>$doctorFields['experience_years'] ?? 0,
+                    'consultation_fee'=>$doctorFields['consultation_fee'] ?? 0,
+                    'education'=>$doctorFields['education'] ?? null, 'biography'=>$doctorFields['biography'] ?? null,
+                    'is_verified'=>false,
+                ]);
+                $doctor->clinics()->sync($doctorFields['clinic_ids'] ?? []);
+            }
+            return $user;
+        });
         if ($avatarFile) {
             $avatars->replace($user, $avatarFile);
             $user->refresh();
@@ -110,7 +162,10 @@ class AdminUserController extends Controller
 
     public function update(Request $request, User $user, AvatarService $avatars)
     {
+        $this->assertUserScope($request, $user);
+        abort_if(in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true) && !in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true), 403, 'SuperAdmin hasabyny üýtgedip bolmaýar.');
         $actor = $request->user();
+        if ($request->has('role') && $request->input('role') !== $user->role) abort(422, 'Ulanyjynyň esasy roly RBAC bölüminden üýtgedilmelidir.');
 
         if ($actor->id === $user->id && $request->has('role') && $request->input('role') !== 'admin') {
             if ($request->wantsJson() || $request->is('api/*')) {
@@ -172,6 +227,8 @@ class AdminUserController extends Controller
 
     public function updateStatus(Request $request, User $user)
     {
+        $this->assertUserScope($request, $user);
+        abort_if(in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true) && !in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true), 403, 'SuperAdmin hasabynyň ýagdaýyny üýtgedip bolmaýar.');
         if ($request->user()->id === $user->id) {
             if ($request->wantsJson() || $request->is('api/*')) {
                 return response()->json(['message' => 'Öz hasabyňyzyň ýagdaýyny üýtgedip bilmersiňiz.'], 422);
@@ -198,9 +255,29 @@ class AdminUserController extends Controller
 
     public function destroy(Request $request, User $user)
     {
+        $this->assertUserScope($request, $user);
+        abort_if($user->doctorProfile, 422, 'Lukman hasabyny Lukmanlar bölüminden pozmaly.');
+        abort_if(in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true) && !in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true), 403, 'SuperAdmin hasabyny pozup bolmaýar.');
         abort_if($request->user()->id === $user->id, 422, 'Öz hasabyňyzy pozup bilmersiňiz.');
-        $user->tokens()->delete();
-        $user->delete();
-        return response()->json(['message' => 'Ulanyjy hasaby ýumşak pozuldy.']);
+        $batch = (string) Str::uuid();
+        DB::transaction(function () use ($user, $batch) {
+            $doctor = $user->doctorProfile;
+            if ($doctor && !$doctor->trashed()) { $doctor->forceFill(['trash_batch_id'=>$batch])->save(); $doctor->delete(); }
+            $user->forceFill(['trash_batch_id'=>$batch])->save();
+            $user->tokens()->delete();
+            $user->delete();
+        });
+        return response()->json(['message' => 'Ulanyjy we degişli lukman profili Trash bölümine geçirildi.']);
     }
+
+    private function assertUserScope(Request $request, User $user): void
+    {
+        if (in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true)) return;
+        $clinicIds = $request->user()->staffClinics()->pluck('clinics.id');
+        $allowed = $user->staffClinics()->whereIn('clinics.id',$clinicIds)->exists()
+            || $user->doctorProfile?->clinics()->whereIn('clinics.id',$clinicIds)->exists()
+            || $user->patientAppointments()->whereIn('clinic_id',$clinicIds)->exists();
+        abort_unless($allowed,403,'Bu ulanyjy siziň klinikalaryňyza degişli däl.');
+    }
+
 }
