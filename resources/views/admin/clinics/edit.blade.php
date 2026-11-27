@@ -42,7 +42,7 @@
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                     <i class="ti ti-hospital text-lg"></i>
                 </span>
-                <input type="text" name="name" value="{{ old('name', $clinic->name) }}" required 
+                <input type="text" name="name" value="{{ old('name', $clinic->name) }}" required
                     class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
             </div>
         </div>
@@ -54,7 +54,7 @@
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                         <i class="ti ti-mail text-lg"></i>
                     </span>
-                    <input type="email" name="email" value="{{ old('email', $clinic->email) }}" required 
+                    <input type="email" name="email" value="{{ old('email', $clinic->email) }}" required
                         class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
                 </div>
             </div>
@@ -64,7 +64,7 @@
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                         <i class="ti ti-phone text-lg"></i>
                     </span>
-                    <input type="text" name="phone" value="{{ old('phone', $clinic->phone) }}" required 
+                    <input type="text" name="phone" value="{{ old('phone', $clinic->phone) }}" required
                         class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
                 </div>
             </div>
@@ -76,20 +76,20 @@
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                     <i class="ti ti-map-pin text-lg"></i>
                 </span>
-                <input type="text" name="city" value="{{ old('city', $clinic->city) }}" required 
+                <input type="text" name="city" value="{{ old('city', $clinic->city) }}" required
                     class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">
             </div>
         </div>
 
         <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">Salgy (Address)</label>
-            <textarea name="address" rows="3" required 
+            <textarea name="address" rows="3" required
                 class="w-full p-3 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm">{{ old('address', $clinic->address) }}</textarea>
         </div>
 
         <div>
             <label class="flex items-center space-x-3 cursor-pointer">
-                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $clinic->is_active) ? 'checked' : '' }} 
+                <input type="checkbox" name="is_active" value="1" {{ old('is_active', $clinic->is_active) ? 'checked' : '' }}
                     class="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500 dark:bg-gray-900">
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     <i class="ti ti-check text-emerald-500"></i>

@@ -6,24 +6,23 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AvatarService;
 use App\Services\RoleAssignmentService;
+use App\Http\Requests\Auth\RegisterRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
-    public function register(Request $request, RoleAssignmentService $roles)
+    public function register(RegisterRequest $request, RoleAssignmentService $roles)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'date_of_birth' => ['nullable', 'date', 'before:today'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        $validated = $request->validated();
 
+        // Public registration is intentionally restricted to Patient accounts.
         $user = User::create([
-            ...$validated,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'password' => $validated['password'],
             'role' => 'patient',
             'is_active' => true,
         ]);
@@ -32,7 +31,7 @@ class AuthController extends Controller
         $token = $user->createToken('shypatap-token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Hasaba alyş üstünlikli tamamlandy.',
+            'message' => 'Hasaba alyş üstünlikli tamamlandy. Ulgama girmek üçin hasabyňyza giriň.',
             'user' => $user,
             'token' => $token,
         ], 201);

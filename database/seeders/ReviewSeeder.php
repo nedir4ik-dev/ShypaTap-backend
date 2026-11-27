@@ -13,7 +13,7 @@ class ReviewSeeder extends Seeder
     public function run(): void
     {
         $patient = User::where('email', 'patient1@sypatap.test')->firstOrFail();
-        $doctor = DoctorProfile::whereHas('user', fn ($q) => $q->where('email', 'doctor1@sypatap.test'))->firstOrFail();
+        $doctor = DoctorProfile::whereHas('user', fn($q) => $q->where('email', 'doctor1@sypatap.test'))->firstOrFail();
 
         $appointment = Appointment::updateOrCreate(
             ['booking_code' => 'ST-DEMO-REVIEW-0001'],

@@ -86,19 +86,19 @@
                     <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition">
                         <td class="py-4 px-6 text-gray-500 dark:text-gray-400 font-medium">#{{ $user->id }}</td>
                         <td class="py-4 px-6 font-semibold text-gray-900 dark:text-white">
-                        <div class="flex items-center gap-3">
-                            @if($user->avatar_url)
+                            <div class="flex items-center gap-3">
+                                @if($user->avatar_url)
                                 <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}" class="h-9 w-9 rounded-full object-cover">
-                            @else
-                                <span class="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 flex items-center justify-center font-bold">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
-                            @endif
-                            {{ $user->name }}
-                        </div>
+                                @else
+                                <span class="h-9 w-9 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 flex items-center justify-center font-bold">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span>
+                                @endif
+                                {{ $user->name }}
+                            </div>
                         </td>
                         <td class="py-4 px-6 text-gray-600 dark:text-gray-300">{{ $user->email }}</td>
                         <td class="py-4 px-6 text-gray-600 dark:text-gray-300">{{ $user->phone ?? 'Görkezilmedik' }}</td>
                         <td class="py-4 px-6">
-                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30">
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30">
                                 {{ ucfirst($user->role) ?? 'User' }}
                             </span>
                         </td>

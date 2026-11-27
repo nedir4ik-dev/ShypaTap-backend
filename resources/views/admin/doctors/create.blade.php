@@ -40,7 +40,7 @@
                 <p class="text-xs text-gray-500 dark:text-gray-400">JPG/JPEG/PNG, iň köp 3 MB. Serwerde WebP edilýär.</p>
             </div>
         </div>
-        
+
 
         <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">FIO (Ady we Familiýasy)</label>
@@ -137,22 +137,22 @@
 
 @push('scripts')
 <script>
-function previewAvatar(event) {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 3 * 1024 * 1024) {
-        alert('Diňe JPG/JPEG/PNG we iň köp 3 MB surat saýlaň.');
-        event.target.value = '';
-        return;
+    function previewAvatar(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 3 * 1024 * 1024) {
+            alert('Diňe JPG/JPEG/PNG we iň köp 3 MB surat saýlaň.');
+            event.target.value = '';
+            return;
+        }
+        const preview = document.getElementById('avatar-preview');
+        const initial = document.getElementById('avatar-initial');
+        if (preview) {
+            preview.src = URL.createObjectURL(file);
+            preview.classList.remove('hidden');
+        }
+        if (initial) initial.classList.add('hidden');
     }
-    const preview = document.getElementById('avatar-preview');
-    const initial = document.getElementById('avatar-initial');
-    if (preview) {
-        preview.src = URL.createObjectURL(file);
-        preview.classList.remove('hidden');
-    }
-    if (initial) initial.classList.add('hidden');
-}
 </script>
 @endpush
 

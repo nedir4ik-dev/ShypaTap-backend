@@ -11,7 +11,7 @@
 </head>
 
 <body class="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-100">
-    <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm md:hidden"></div>
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 z-40 hidden bg-slate-950/60 backdrop-blur-sm md:hidden"></div>
 
     <div class="admin-shell flex min-h-screen w-full">
         <?php echo $__env->make('layouts.partials.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
@@ -54,49 +54,12 @@
                 'ti ti-moon text-xl';
         }
 
-        const sidebar = document.getElementById('app-sidebar');
-        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-        const sidebarToggles = document.querySelectorAll('[data-sidebar-toggle]');
-        const mobileViewport = window.matchMedia('(max-width: 767px)');
-
-        function setSidebarState(isOpen) {
-            const isMobile = mobileViewport.matches;
-
-            if (!sidebar || !sidebarBackdrop) {
-                return;
-            }
-
-            const shouldShowSidebar = isMobile && isOpen;
-            sidebar.classList.toggle('-translate-x-full', isMobile && !isOpen);
-            sidebarBackdrop.classList.toggle('hidden', !shouldShowSidebar);
-            sidebar.toggleAttribute('inert', isMobile && !isOpen);
-            sidebar.setAttribute('aria-hidden', String(isMobile && !isOpen));
-            document.body.classList.toggle('overflow-hidden', shouldShowSidebar);
-
-            sidebarToggles.forEach((toggle) => {
-                toggle.setAttribute('aria-expanded', String(isMobile ? isOpen : true));
-            });
-        }
-
         window.toggleSidebar = function() {
-            setSidebarState(sidebar?.classList.contains('-translate-x-full'));
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+            if (backdrop) backdrop.classList.toggle('hidden');
         };
-
-        sidebarToggles.forEach((toggle) => {
-            toggle.addEventListener('click', window.toggleSidebar);
-        });
-
-        sidebarBackdrop?.addEventListener('click', () => setSidebarState(false));
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && mobileViewport.matches) {
-                setSidebarState(false);
-            }
-        });
-
-        mobileViewport.addEventListener('change', () => setSidebarState(false));
-
-        setSidebarState(false);
     </script>
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>

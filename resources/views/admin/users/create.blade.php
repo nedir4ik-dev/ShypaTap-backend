@@ -78,10 +78,12 @@
                     </select>
                 </div>
 
-                <div id="doctor-fields" class="hidden sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
+                <div id="doctor-fields" class="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
                     <div class="sm:col-span-2 font-bold text-emerald-800 dark:text-emerald-300">Lukman profili</div>
                     <label class="text-xs font-semibold">Hünär ugry
-                        <select name="specialization_id" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900"><option value="">Hünär saýlaň</option>@foreach($specializations as $specialization)<option value="{{ $specialization->id }}" {{ old('specialization_id') == $specialization->id ? 'selected' : '' }}>{{ $specialization->name }}</option>@endforeach</select>
+                        <select name="specialization_id" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900">
+                            <option value="">Hünär saýlaň</option>@foreach($specializations as $specialization)<option value="{{ $specialization->id }}" {{ old('specialization_id') == $specialization->id ? 'selected' : '' }}>{{ $specialization->name }}</option>@endforeach
+                        </select>
                     </label>
                     <label class="text-xs font-semibold">Tejribe (ýyl)
                         <input type="number" name="experience_years" min="0" max="70" value="{{ old('experience_years',0) }}" class="mt-2 w-full rounded-xl border bg-white px-3 py-3 dark:bg-gray-900" />
@@ -142,7 +144,9 @@
         if (fields) fields.classList.toggle('hidden', role?.value !== 'doctor');
         if (receptionistFields) receptionistFields.classList.toggle('hidden', role?.value !== 'receptionist');
         if (adminFields) adminFields.classList.toggle('hidden', role?.value !== 'admin');
-        [fields, receptionistFields, adminFields].forEach((section) => section?.querySelectorAll('input,select,textarea').forEach((el) => { el.disabled = section.classList.contains('hidden'); }));
+        [fields, receptionistFields, adminFields].forEach((section) => section?.querySelectorAll('input,select,textarea').forEach((el) => {
+            el.disabled = section.classList.contains('hidden');
+        }));
         const spec = fields?.querySelector('[name="specialization_id"]');
         if (spec) spec.required = role?.value === 'doctor';
     }
@@ -150,6 +154,7 @@
         document.getElementById('user-role')?.addEventListener('change', toggleDoctorFields);
         toggleDoctorFields();
     });
+
     function previewAvatar(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;

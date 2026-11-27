@@ -14,7 +14,10 @@ class PermissionMiddleware
         abort_unless($user->is_active, 403, 'Hasabyňyz işjeň däl.');
         if ($permission === 'auto') $permission = $this->resolvePermission($request);
         $clinicId = $request->input('clinic_id') ?? $request->query('clinic_id');
-        if ($clinicId && !in_array(strtolower((string)$user->role), ['superadmin','super_admin'], true)) {
+        // Patients are customers of a clinic, not clinic members. Clinic membership
+        // is an employee/doctor scope restriction and must not block public booking.
+        $role = strtolower((string) $user->role);
+        if ($clinicId && !in_array($role, ['patient', 'superadmin', 'super_admin'], true)) {
             abort_unless($user->belongsToClinic((int) $clinicId), 403, 'Bu klinika üçin rugsadyňyz ýok.');
         }
         abort_unless($user->hasPermission($permission, $clinicId ? (int) $clinicId : null), 403, 'Bu amal üçin rugsadyňyz ýok.');

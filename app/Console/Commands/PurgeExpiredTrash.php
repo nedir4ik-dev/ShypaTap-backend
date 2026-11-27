@@ -20,6 +20,7 @@ class PurgeExpiredTrash extends Command
         foreach ($models as $model) {
             $model::onlyTrashed()->where('deleted_at','<=',$cutoff)->orderBy('id')->chunkById(100, function ($rows) use ($model) {
                 foreach ($rows as $row) {
+                    // Appointment FK restricts deletion while a payment exists; this preserves financial history.
                     if ($model === Appointment::class && $row->payment()->exists()) continue;
                     try { $row->forceDelete(); } catch (\Throwable $e) { report($e); }
                 }

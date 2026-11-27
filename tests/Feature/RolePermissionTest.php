@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Http\Middleware\PermissionMiddleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -48,5 +51,41 @@ class RolePermissionTest extends TestCase
         $this->actingAs($user, 'sanctum')
             ->patchJson('/api/receptionist/payments/1', ['status' => 'paid'])
             ->assertNotFound();
+    }
+
+    public function test_patient_permission_is_not_blocked_by_clinic_membership_scope(): void
+    {
+        $permission = Permission::firstOrCreate(['name' => 'appointments.create'], ['group' => 'appointments']);
+        $role = Role::firstOrCreate(['slug' => 'patient'], ['name' => 'Patient', 'is_system' => true]);
+        $role->permissions()->syncWithoutDetaching([$permission->id]);
+        $user = User::factory()->create(['role' => 'patient']);
+
+        $request = \Illuminate\Http\Request::create('/api/appointments', 'POST', ['clinic_id' => 99999]);
+        $request->setUserResolver(fn() => $user);
+        $response = app(PermissionMiddleware::class)->handle(
+            $request,
+            fn() => response()->json(['ok' => true]),
+            'appointments.create'
+        );
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    public function test_receptionist_still_requires_membership_in_selected_clinic(): void
+    {
+        $permission = Permission::firstOrCreate(['name' => 'appointments.create'], ['group' => 'appointments']);
+        $role = Role::firstOrCreate(['slug' => 'receptionist'], ['name' => 'Receptionist', 'is_system' => true]);
+        $role->permissions()->syncWithoutDetaching([$permission->id]);
+        $user = User::factory()->create(['role' => 'receptionist']);
+
+        $request = \Illuminate\Http\Request::create('/api/receptionist/appointments', 'POST', ['clinic_id' => 99999]);
+        $request->setUserResolver(fn() => $user);
+
+        $this->expectException(HttpException::class);
+        app(PermissionMiddleware::class)->handle(
+            $request,
+            fn() => response()->json(['ok' => true]),
+            'appointments.create'
+        );
     }
 }

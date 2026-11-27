@@ -17,8 +17,8 @@ class AdminClinicController extends Controller
     public function index(Request $request)
     {
         $query = Clinic::query()->withCount(['doctors', 'appointments']);
-        if (!in_array(strtolower((string)$request->user()->role), ['superadmin', 'super_admin'], true)) $query->whereIn('id', $request->user()->staffClinics()->pluck('clinics.id'));
-        if ($request->filled('clinic_id')) abort_unless($request->user()->belongsToClinic((int)$request->query('clinic_id')), 403);
+        if (!in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true)) $query->whereIn('id', $request->user()->staffClinics()->pluck('clinics.id'));
+        if ($request->filled('clinic_id')) abort_unless($request->user()->belongsToClinic((int)$request->query('clinic_id')),403);
 
         if ($request->filled('city')) {
             $query->where('city', 'ilike', '%' . $request->string('city')->toString() . '%');
@@ -46,7 +46,7 @@ class AdminClinicController extends Controller
 
     public function show(Request $request, Clinic $clinic)
     {
-        abort_unless($request->user()->belongsToClinic((int)$clinic->id), 403);
+        abort_unless($request->user()->belongsToClinic((int)$clinic->id),403);
         $clinic->loadCount(['doctors', 'appointments']);
 
         if ($request->wantsJson() || $request->is('api/*')) {
@@ -58,7 +58,7 @@ class AdminClinicController extends Controller
 
     public function edit(Request $request, Clinic $clinic)
     {
-        abort_unless($request->user()->belongsToClinic((int)$clinic->id), 403);
+        abort_unless($request->user()->belongsToClinic((int)$clinic->id),403);
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['data' => $clinic]);
         }
@@ -81,7 +81,7 @@ class AdminClinicController extends Controller
         if ($request->has('is_active')) $data['is_active'] = $request->boolean('is_active');
 
         $clinic = Clinic::create($data);
-        if (!in_array(strtolower((string)$request->user()->role), ['superadmin', 'super_admin'], true)) $clinic->staff()->syncWithoutDetaching([$request->user()->id]);
+        if (!in_array(strtolower((string)$request->user()->role), ['superadmin','super_admin'], true)) $clinic->staff()->syncWithoutDetaching([$request->user()->id]);
 
         if ($request->wantsJson() || $request->is('api/*')) {
             return response()->json(['message' => 'Klinika döredildi.', 'data' => $clinic], 201);
@@ -92,7 +92,7 @@ class AdminClinicController extends Controller
 
     public function update(Request $request, Clinic $clinic)
     {
-        abort_unless($request->user()->belongsToClinic((int)$clinic->id), 403);
+        abort_unless($request->user()->belongsToClinic((int)$clinic->id),403);
         $data = $request->validate([
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
@@ -117,7 +117,7 @@ class AdminClinicController extends Controller
 
     public function destroy(Request $request, Clinic $clinic)
     {
-        abort_unless($request->user()->belongsToClinic((int)$clinic->id), 403);
+        abort_unless($request->user()->belongsToClinic((int)$clinic->id),403);
         DB::transaction(function () use ($clinic) {
             $batch = (string) Str::uuid();
             $now = now();
@@ -128,20 +128,21 @@ class AdminClinicController extends Controller
                 Review::query()->whereIn('appointment_id', $appointmentIds)->whereNull('deleted_at')
                     ->update(['deleted_at' => $now, 'trash_batch_id' => $batch]);
             }
+            // A doctor shared by another active clinic remains active.
             $doctorIds = $clinic->doctors()->pluck('doctor_profiles.id');
             foreach ($doctorIds as $doctorId) {
-                $otherActiveClinics = DB::table('clinic_doctors')->join('clinics', 'clinics.id', '=', 'clinic_doctors.clinic_id')
-                    ->where('clinic_doctors.doctor_profile_id', $doctorId)->where('clinics.id', '<>', $clinic->id)
+                $otherActiveClinics = DB::table('clinic_doctors')->join('clinics','clinics.id','=','clinic_doctors.clinic_id')
+                    ->where('clinic_doctors.doctor_profile_id',$doctorId)->where('clinics.id','<>',$clinic->id)
                     ->whereNull('clinics.deleted_at')->exists();
                 if (!$otherActiveClinics) {
                     DoctorProfile::query()->whereKey($doctorId)->whereNull('deleted_at')
-                        ->update(['deleted_at' => $now, 'trash_batch_id' => $batch]);
+                        ->update(['deleted_at'=>$now,'trash_batch_id'=>$batch]);
                 }
             }
-            $clinic->forceFill(['trash_batch_id' => $batch])->save();
+            $clinic->forceFill(['trash_batch_id'=>$batch])->save();
             $clinic->delete();
         });
-        if ($request->wantsJson() || $request->is('api/*')) return response()->json(['message' => 'Klinika we onuň degişli işjeň ýazgylary Trash bölümine geçirildi.']);
+        if ($request->wantsJson() || $request->is('api/*')) return response()->json(['message'=>'Klinika we onuň degişli işjeň ýazgylary Trash bölümine geçirildi.']);
         return redirect()->route('admin.clinics.index')->with('success', 'Klinika we degişli ýazgylar Trash bölümine geçirildi.');
     }
 }

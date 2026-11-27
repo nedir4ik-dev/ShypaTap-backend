@@ -55,7 +55,7 @@ class DoctorProfileSeeder extends Seeder
                 ]
             );
         }
-        
+
         // DoctorProfile::factory()->count(5)->create();
     }
 }
