@@ -33,29 +33,42 @@
 
     @php
     $metrics = [
-    ['Jemi Näsaglar', $totalPatients, 'ti-users', 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'],
-    ['Jemi Lukmanlar', $totalDoctors, 'ti-stethoscope', 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'],
-    ['Jemi Klinikalar', $totalClinics, 'ti-building-hospital', 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'],
-    ['Şu günki Bronlar', $todayAppointments, 'ti-calendar-event', 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'],
-    ['Jemi ulanyjy', $totalUsers, 'ti-users', 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400'],
-    ['Jemi kabul', $totalAppointments, 'ti-calendar', 'bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400'],
-    ['Tamamlanan', $completedAppointments, 'ti-check', 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400'],
-    ['Ýatyrylan', $cancelledAppointments, 'ti-calendar-x', 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'],
-    ['Garaşýan tölegler', $pendingPayments, 'ti-wallet', 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400'],
-    ['Tölenen tölegler', $paidPayments, 'ti-cash', 'bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400'],
-    ['Girdeji', number_format((float) $revenue, 2).' TMT', 'ti-currency-manat', 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400'],
+    ['Jemi Näsaglar', $totalPatients, 'ti-users', 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400', 'admin.patients.index'],
+    ['Jemi Lukmanlar', $totalDoctors, 'ti-stethoscope', 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400', 'admin.doctors.index'],
+    ['Jemi Klinikalar', $totalClinics, 'ti-building-hospital', 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400', 'admin.clinics.index'],
+    ['Şu günki Bronlar', $todayAppointments, 'ti-calendar-event', 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400', 'admin.appointments.index'],
+    ['Jemi ulanyjy', $totalUsers, 'ti-users', 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400', 'admin.users.index'],
+    ['Jemi kabul', $totalAppointments, 'ti-calendar', 'bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400', 'admin.appointments.index'],
+    ['Tamamlanan', $completedAppointments, 'ti-check', 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400', 'admin.appointments.index'],
+    ['Ýatyrylan', $cancelledAppointments, 'ti-calendar-x', 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400', 'admin.appointments.index'],
+    ['Garaşýan tölegler', $pendingPayments, 'ti-wallet', 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400', 'admin.payments.index'],
+    ['Tölenen tölegler', $paidPayments, 'ti-cash', 'bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400', 'admin.payments.index'],
+    ['Girdeji', number_format((float) $revenue, 2).' TMT', 'ti-currency-manat', 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400', 'admin.reports.index'],
     ];
     @endphp
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        @foreach ($metrics as [$label, $value, $icon, $iconColors])
-        <article class="flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors dark:border-gray-700 dark:bg-gray-800 sm:p-6">
+        @foreach ($metrics as [$label, $value, $icon, $iconColors, $route])
+
+        <a href="{{ route($route) }}"
+            class="group flex min-w-0 items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-300 hover:border-blue-400 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-500 sm:p-6">
+
             <div class="min-w-0">
-                <p class="truncate text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $label }}</p>
-                <p class="mt-1 truncate text-2xl font-extrabold text-gray-900 dark:text-white sm:text-3xl">{{ $value }}</p>
+                <p class="truncate text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    {{ $label }}
+                </p>
+
+                <p class="mt-1 truncate text-2xl font-extrabold text-gray-900 dark:text-white sm:text-3xl">
+                    {{ $value }}
+                </p>
             </div>
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl {{ $iconColors }}"><i class="ti {{ $icon }}"></i></div>
-        </article>
+
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl {{ $iconColors }} transition-transform duration-300 group-hover:scale-110">
+                <i class="ti {{ $icon }}"></i>
+            </div>
+
+        </a>
+
         @endforeach
     </div>
 
